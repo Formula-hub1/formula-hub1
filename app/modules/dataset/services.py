@@ -25,6 +25,9 @@ from app.modules.hubfile.repositories import (
 )
 from core.services.BaseService import BaseService
 
+import json
+from core.services.DatasetRecommenderService import DatasetRecommenderService
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,8 +49,25 @@ class DataSetService(BaseService):
         self.dsdownloadrecord_repository = DSDownloadRecordRepository()
         self.hubfiledownloadrecord_repository = HubfileDownloadRecordRepository()
         self.hubfilerepository = HubfileRepository()
-        self.dsviewrecord_repostory = DSViewRecordRepository()
+        self.dsviewrecord_repository = DSViewRecordRepository()
         self.hubfileviewrecord_repository = HubfileViewRecordRepository()
+        self.dataset_recommender_service = DatasetRecommenderService(
+            dataset_repository=self.repository,
+            ds_download_repository=self.dsdownloadrecord_repository)
+
+    def save_dataset_recommendations(self, dataset: DataSet):
+        """Calcula las recomendaciones y las guarda en el objeto DataSet."""
+        
+        # 1. Ejecución: Llama al motor de lógica pura
+        recommended_ids = self.dataset_recommender_service.get_recommendations(dataset)
+        
+        # 2. Persistencia: Asigna la lista de IDs como cadena JSON
+        dataset.recommended_datasets_json = json.dumps(recommended_ids)
+        
+        # 3. Guardar: Persiste el cambio en la base de datos
+        self.repository.session.commit()
+        
+        return recommended_ids
 
     def move_feature_models(self, dataset: DataSet):
         current_user = AuthenticationService().get_authenticated_user()
@@ -90,7 +110,7 @@ class DataSetService(BaseService):
         return self.dsdownloadrecord_repository.total_dataset_downloads()
 
     def total_dataset_views(self) -> int:
-        return self.dsviewrecord_repostory.total_dataset_views()
+        return self.dsviewrecord_repository.total_dataset_views()
 
     def create_from_form(self, form, current_user) -> DataSet:
         main_author = {

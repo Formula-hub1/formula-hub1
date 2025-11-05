@@ -63,7 +63,13 @@ def create_dataset():
             logger.exception(f"Exception while create dataset data in local {exc}")
             return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
 
-        # send dataset as deposition to Zenodo
+        try:
+            dataset_service.save_dataset_recommendations(dataset) 
+            logger.info(f"Recommendations calculated and saved locally for dataset: {dataset.id}")
+        except Exception as e:
+            logger.exception(f"Exception while calculating recommendations locally: {e}")
+            pass
+
         data = {}
         try:
             zenodo_response_json = zenodo_service.create_new_deposition(dataset)
@@ -72,7 +78,7 @@ def create_dataset():
         except Exception as exc:
             data = {}
             zenodo_response_json = {}
-            logger.exception(f"Exception while create dataset data in Zenodo {exc}")
+            logger.exception(f"Exception while create dataset data in Zenodo Failed to create deposition... {exc}")
 
         if data.get("conceptrecid"):
             deposition_id = data.get("id")
@@ -270,3 +276,31 @@ def get_unsynchronized_dataset(dataset_id):
         abort(404)
 
     return render_template("dataset/view_dataset.html", dataset=dataset)
+
+
+@dataset_bp.route('/datasets/<int:dataset_id>/recommendations', methods=['GET'])
+def get_recommendations_api(dataset_id):
+    try:
+        dataset = dataset_service.get_by_id(dataset_id) 
+    except:
+        return jsonify({'error': 'Dataset not found'}), 404
+    
+    if not dataset:
+        return jsonify({'error': 'Dataset not found'}), 404
+        
+    try:
+        json_data = dataset.recommended_datasets_json
+        
+        if json_data:
+            recommended_ids = json.loads(json_data)
+        else:
+            recommended_ids = [] 
+        
+        return jsonify({
+            "dataset_id": dataset_id,
+            "recommended_ids": recommended_ids
+        }), 200
+
+    except Exception as exc:
+        logger.error(f"Error processing recommendation data for DS {dataset_id}: {exc}")
+        return jsonify({'error': 'Internal error processing recommendation data.'}), 500
