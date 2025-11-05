@@ -74,6 +74,13 @@ class DataSet(db.Model):
     ds_meta_data = db.relationship("DSMetaData", backref=db.backref("data_set", uselist=False))
     feature_models = db.relationship("FeatureModel", backref="data_set", lazy=True, cascade="all, delete")
 
+    # Nueva columna para almacenar datasets recomendados en formato JSON
+    recommended_datasets_json = db.Column(
+        db.Text, 
+        nullable=True, 
+        default='[]'
+    )
+
     def name(self):
         return self.ds_meta_data.title
 

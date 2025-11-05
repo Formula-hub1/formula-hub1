@@ -21,9 +21,10 @@ class DSDownloadRecordRepository(BaseRepository):
         super().__init__(DSDownloadRecord)
 
     def total_dataset_downloads(self) -> int:
-        max_id = self.model.query.with_entities(func.max(self.model.id)).scalar()
-        return max_id if max_id is not None else 0
+        return self.model.query.count()
 
+    def count_downloads_for_dataset(self, dataset_id: int) -> int:
+        return self.model.query.filter_by(dataset_id=dataset_id).count()
 
 class DSMetaDataRepository(BaseRepository):
     def __init__(self):
@@ -99,6 +100,12 @@ class DataSetRepository(BaseRepository):
             .all()
         )
 
+    def get_all_synchronized_datasets(self):
+        return (
+            self.model.query.join(DSMetaData)
+            .filter(DSMetaData.dataset_doi.isnot(None))
+            .all()
+        )
 
 class DOIMappingRepository(BaseRepository):
     def __init__(self):
