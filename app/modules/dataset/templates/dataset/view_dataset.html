@@ -184,6 +184,23 @@
 
         </div>
 
+    </div>
+
+    
+        
+    <div class="card">
+
+        <div class="card-body">
+
+            <h3> Recommended datasets </h3>
+            
+            <div id="recommendation-list">
+                <p class="text-secondary" id="loading-message">Loading suggestions...</p>
+            </div>
+
+        </div>
+    </div>
+
         <div class="card">
 
             <div class="card-body">
@@ -367,6 +384,43 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         feather.replace();
+
+        const datasetId = "{{ dataset.id|tojson }}";
+        const recommendationContainer = document.getElementById('recommendation-list');
+
+        if (datasetId && recommendationContainer) {
+            
+            fetch(`/datasets/${datasetId}/recommendations`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('API response was not successful.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    recommendationContainer.innerHTML = '';
+                    
+                    if (data.recommended_ids && data.recommended_ids.length > 0) {
+                        
+                        let htmlContent = '<div class="list-group">';
+                        data.recommended_ids.forEach(recId => {
+                            htmlContent += `
+                                <a href="/dataset/${recId}" class="list-group-item list-group-item-action">
+                                    Suggested Dataset #${recId}
+                                </a>`;
+                        });
+                        htmlContent += '</div>';
+                        recommendationContainer.innerHTML = htmlContent;
+
+                    } else {
+                        recommendationContainer.innerHTML = '<p class="text-secondary">No similar datasets were found based on the current criteria.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching recommendations:', error);
+                    recommendationContainer.innerHTML = '<p class="text-danger">An error occurred while loading recommendations.</p>';
+                });
+        }
     });
 
     var currentFileId;
