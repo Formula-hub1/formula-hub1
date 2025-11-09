@@ -7,7 +7,7 @@ base_url = "/fakenodo/api"
 def test_fakenodo():
     response = {
         "status": "success",
-        "message": "FakeNododo API is working!",
+        "message": "FakeNodo API is working.",
     }
     return jsonify(response)
 
@@ -15,7 +15,7 @@ def test_fakenodo():
 def create_fakenodo():
     response = {
         "status": "success",
-        "message": "FakeNododo created successfully!",
+        "message": "FakeNodo created successfully!",
     }
     return make_response(jsonify(response), 201)
 
