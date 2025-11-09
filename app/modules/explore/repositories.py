@@ -1,7 +1,8 @@
 import re
 
 import unidecode
-from sqlalchemy import any_, or_
+from sqlalchemy import any_, or_, and_
+from sqlalchemy.orm import joinedload 
 
 from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
 from app.modules.featuremodel.models import FeatureModel, FMMetaData
@@ -13,33 +14,68 @@ class ExploreRepository(BaseRepository):
         super().__init__(DataSet)
 
     def filter(self, query="", sorting="newest", publication_type="any", tags=[], **kwargs):
+        
         # Normalize and remove unwanted characters
         normalized_query = unidecode.unidecode(query).lower()
-        cleaned_query = re.sub(r'[,.":\'()\[\]^;!¡¿?]', "", normalized_query)
+        # Permitimos el punto para buscar archivos (e.g., file.uvl)
+        cleaned_query = re.sub(r'[,":\'()\[\]^;!¡¿?]', "", normalized_query).strip()
 
-        filters = []
-        for word in cleaned_query.split():
-            filters.append(DSMetaData.title.ilike(f"%{word}%"))
-            filters.append(DSMetaData.description.ilike(f"%{word}%"))
-            filters.append(Author.name.ilike(f"%{word}%"))
-            filters.append(Author.affiliation.ilike(f"%{word}%"))
-            filters.append(Author.orcid.ilike(f"%{word}%"))
-            filters.append(FMMetaData.uvl_filename.ilike(f"%{word}%"))
-            filters.append(FMMetaData.title.ilike(f"%{word}%"))
-            filters.append(FMMetaData.description.ilike(f"%{word}%"))
-            filters.append(FMMetaData.publication_doi.ilike(f"%{word}%"))
-            filters.append(FMMetaData.tags.ilike(f"%{word}%"))
-            filters.append(DSMetaData.tags.ilike(f"%{word}%"))
-
-        datasets = (
+        # Inicia la consulta y las uniones (joins)
+        datasets_query = (
             self.model.query.join(DataSet.ds_meta_data)
-            .join(DSMetaData.authors)
-            .join(DataSet.feature_models)
-            .join(FeatureModel.fm_meta_data)
-            .filter(or_(*filters))
-            .filter(DSMetaData.dataset_doi.isnot(None))  # Exclude datasets with empty dataset_doi
+            .outerjoin(DSMetaData.authors)
+            .outerjoin(DataSet.feature_models)
+            .outerjoin(FeatureModel.fm_meta_data)
+            .filter(DSMetaData.dataset_doi.isnot(None))
         )
 
+        # -------------------------------------------------------------
+        # 1. LÓGICA DE FILTRADO POR BÚSQUEDA (QUERY)
+        # -------------------------------------------------------------
+        if cleaned_query:
+            
+            final_filters = []
+            words = cleaned_query.split()
+            
+            # --- Condición A: Búsqueda OR Amplia (Frase Completa) ---
+            # Este es el filtro de búsqueda flexible: busca la frase exacta en CUALQUIER campo.
+            # Funciona para "Author 4", "tag1", "file.uvl", y "sample dataset 3".
+            phrase_match_in_any_field = or_(
+                DSMetaData.title.ilike(f"%{cleaned_query}%"),
+                DSMetaData.description.ilike(f"%{cleaned_query}%"),
+                DSMetaData.tags.ilike(f"%{cleaned_query}%"),
+                Author.name.ilike(f"%{cleaned_query}%"),
+                Author.affiliation.ilike(f"%{cleaned_query}%"),
+                FMMetaData.uvl_filename.ilike(f"%{cleaned_query}%"),
+                FMMetaData.title.ilike(f"%{cleaned_query}%"),
+                FMMetaData.description.ilike(f"%{cleaned_query}%"),
+                FMMetaData.tags.ilike(f"%{cleaned_query}%"),
+            )
+            final_filters.append(phrase_match_in_any_field)
+            
+            # --- Condición B: Búsqueda Estricta AND (Solo para Títulos Multipalabra) ---
+            # Si hay más de una palabra, añadimos el requisito estricto en el título para reducir resultados.
+            if len(words) > 1:
+                
+                strict_title_and_words = [] 
+                
+                for word in words:
+                    # Requerimos que TODAS las palabras estén presentes en el TÍTULO.
+                    strict_title_and_words.append(DSMetaData.title.ilike(f"%{word}%"))
+
+                # Agregamos la condición B (AND en título) al filtro final OR
+                strict_title_and = and_(*strict_title_and_words)
+                final_filters.append(strict_title_and)
+            
+            # Aplicamos la condición final: OR(Frase Completa) OR (AND en Título)
+            # Con solo estas dos condiciones (A y B), cubrimos todos los casos:
+            # - Búsqueda simple (Author 4): A se activa, B no se activa o falla, A encuentra.
+            # - Búsqueda estricta (sample dataset 3): A y B se activan, B fuerza el filtro.
+            datasets_query = datasets_query.filter(or_(*final_filters))
+
+        # -------------------------------------------------------------
+        # 2. FILTRADO POR TIPO DE PUBLICACIÓN
+        # -------------------------------------------------------------
         if publication_type != "any":
             matching_type = None
             for member in PublicationType:
@@ -48,15 +84,22 @@ class ExploreRepository(BaseRepository):
                     break
 
             if matching_type is not None:
-                datasets = datasets.filter(DSMetaData.publication_type == matching_type.name)
+                datasets_query = datasets_query.filter(DSMetaData.publication_type == matching_type.name)
 
+        # -------------------------------------------------------------
+        # 3. FILTRADO POR TAGS (Usa la variable `tags` de los argumentos)
+        # -------------------------------------------------------------
         if tags:
-            datasets = datasets.filter(DSMetaData.tags.ilike(any_(f"%{tag}%" for tag in tags)))
+            # Esto asume que DSMetaData.tags es un campo de texto o array que soporta la función any_
+            datasets_query = datasets_query.filter(DSMetaData.tags.ilike(any_(f"%{tag}%" for tag in tags)))
 
-        # Order by created_at
+        # -------------------------------------------------------------
+        # 4. ORDENAMIENTO
+        # -------------------------------------------------------------
         if sorting == "oldest":
-            datasets = datasets.order_by(self.model.created_at.asc())
+            datasets_query = datasets_query.order_by(self.model.created_at.asc())
         else:
-            datasets = datasets.order_by(self.model.created_at.desc())
+            datasets_query = datasets_query.order_by(self.model.created_at.desc())
 
-        return datasets.all()
+        # Aseguramos que solo se devuelvan resultados únicos.
+        return datasets_query.distinct().all()
