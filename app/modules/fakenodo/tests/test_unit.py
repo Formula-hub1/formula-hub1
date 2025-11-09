@@ -1,24 +1,59 @@
 import pytest
+from app import create_app
 
+@pytest.fixture
+def app():
+    app = create_app()
+    app.config["TESTING"] = True
+    yield app
 
-@pytest.fixture(scope='module')
-def test_client(test_client):
-    """
-    Extends the test_client fixture to add additional specific data for module testing.
-    """
-    with test_client.application.app_context():
-        # Add HERE new elements to the database that you want to exist in the test context.
-        # DO NOT FORGET to use db.session.add(<element>) and db.session.commit() to save the data.
-        pass
+@pytest.fixture
+def client(app):
+    return app.test_client()
 
-    yield test_client
+def test_connection_fakenodo(client):
+    response = client.get("/fakenodo/api")
+    data = response.get_json()
+    assert response.status_code == 200
+    assert data["status"] == "success"
+    assert data["message"] == "FakeNodo API is working."
 
+def test_create_fakenodo(client):
+    response = client.post("/fakenodo/api")
+    data = response.get_json()
+    assert response.status_code == 201
+    assert data["status"] == "success"
+    assert data["message"] == "FakeNodo created successfully!"
 
-def test_sample_assertion(test_client):
-    """
-    Sample test to verify that the test framework and environment are working correctly.
-    It does not communicate with the Flask application; it only performs a simple assertion to
-    confirm that the tests in this module can be executed.
-    """
-    greeting = "Hello, World!"
-    assert greeting == "Hello, World!", "The greeting does not coincide with 'Hello, World!'"
+def test_deposition_files_fakenodo(client):
+    deposition_id = "test_deposition"
+    response = client.post(f"/fakenodo/api/{deposition_id}/files")
+    data = response.get_json()
+    assert response.status_code == 201
+    assert data["status"] == "success"
+    assert data["message"] == f"Created deposition {deposition_id} successfully!"
+
+def test_delete_deposition_fakenodo(client):
+    deposition_id = "test_deposition"
+    response = client.delete(f"/fakenodo/api/{deposition_id}")
+    data = response.get_json()
+    assert response.status_code == 200
+    assert data["status"] == "success"
+    assert data["message"] == f"Deleted deposition {deposition_id} successfully!"
+
+def test_publish_deposition_fakenodo(client):
+    deposition_id = "test_deposition"
+    response = client.post(f"/fakenodo/api/{deposition_id}/actions/publish")
+    data = response.get_json()
+    assert response.status_code == 202
+    assert data["status"] == "success"
+    assert data["message"] == f"Published deposition {deposition_id} successfully!" 
+
+def test_get_deposition_fakenodo(client):
+    deposition_id = "test_deposition"
+    response = client.get(f"/fakenodo/api/{deposition_id}")
+    data = response.get_json()
+    assert response.status_code == 200
+    assert data["status"] == "success"
+    assert data["message"] == f"Fetched deposition {deposition_id} successfully!"
+    assert data["doi"] == "10.1234/fakenodo.123456"
