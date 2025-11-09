@@ -7,10 +7,25 @@ from app.modules.explore.services import ExploreService
 
 @explore_bp.route("/explore", methods=["GET", "POST"])
 def index():
+    form = ExploreForm()
+
     if request.method == "GET":
         query = request.args.get("query", "")
-        form = ExploreForm()
-        return render_template("explore/index.html", form=form, query=query)
+        author = request.args.get("author", "")
+        description = request.args.get("description", "")
+        file = request.args.get("file", "")
+        tags = request.args.get("tags", "")  
+        date = request.args.get("date", "")
+
+        return render_template("explore/index.html", 
+                               form=form, 
+                               query=query,
+                               author = author,
+                               description = description,
+                               file = file,
+                               tags =tags,
+                               date = date
+                               )
 
     if request.method == "POST":
         criteria = request.get_json()

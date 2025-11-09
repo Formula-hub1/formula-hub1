@@ -13,7 +13,7 @@ class ExploreRepository(BaseRepository):
     def __init__(self):
         super().__init__(DataSet)
 
-    def filter(self, query="", sorting="newest", publication_type="any", tags=[], **kwargs):
+    def filter(self, query="", sorting="newest", publication_type="any", tags=None, author="", description="", date="", uvl_files="", **kwargs):
         
         # Normalize and remove unwanted characters
         normalized_query = unidecode.unidecode(query).lower()
@@ -30,10 +30,31 @@ class ExploreRepository(BaseRepository):
         )
 
         # -------------------------------------------------------------
-        # 1. LÓGICA DE FILTRADO POR BÚSQUEDA (QUERY)
+        # 1. LÓGICA DE FILTRADO POR BÚSQUEDA (QUERY) + Advanced Search
         # -------------------------------------------------------------
+        aditional_filter = []
+
+        if author:
+            # Busca que el autor contenga la subcadena
+            aditional_filter.append(Author.name.ilike(f"%{author}%"))
+        
+        if description:
+            aditional_filter.append(DSMetaData.description.ilike(f"%{description}%"))
+        
+        if uvl_files: 
+            aditional_filter.append(FMMetaData.uvl_filename.ilike(f"%{uvl_files}%"))
+
+        if date:
+            aditional_filter.append(self.model.created_at.startswith(date))
+
+        if aditional_filter:
+            # Usamos 'and_' para combinar los filtros individuales
+            datasets_query = datasets_query.filter(and_(*aditional_filter))
+
+                                          
+        # Lógica de búsqueda principal
         if cleaned_query:
-            
+
             final_filters = []
             words = cleaned_query.split()
             
@@ -89,10 +110,16 @@ class ExploreRepository(BaseRepository):
         # -------------------------------------------------------------
         # 3. FILTRADO POR TAGS (Usa la variable `tags` de los argumentos)
         # -------------------------------------------------------------
-        if tags:
-            # Esto asume que DSMetaData.tags es un campo de texto o array que soporta la función any_
+        # tags puede ser None (Any), lista vacía [] (None), o lista con tags ['tag1'].
+        if tags is not None and tags:
+            # Filtra por datasets que contengan al menos uno de las tags
             datasets_query = datasets_query.filter(DSMetaData.tags.ilike(any_(f"%{tag}%" for tag in tags)))
-
+        elif tags is not None and not tags: 
+            # Si tags es una lista vacía [], significa que buscamos "None"
+            datasets_query = datasets_query.filter(DSMetaData.tags == None)                   
+        # Si tags es None (valor por defecto o 'Any' en el frontend), no aplicamos filtro, incluye todos.
+        
+        
         # -------------------------------------------------------------
         # 4. ORDENAMIENTO
         # -------------------------------------------------------------
