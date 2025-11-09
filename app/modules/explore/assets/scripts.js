@@ -8,6 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Función central: Se encarga ÚNICAMENTE de ejecutar el FETCH y renderizar los resultados.
 function performSearch() {
+    const headerQueryInput = document.getElementById('search-query');
+    const sidebarQueryInput = document.getElementById('query');
+
+    if (headerQueryInput && sidebarQueryInput) {
+        sidebarQueryInput.value = headerQueryInput.value;
+    }
     
     console.log("performing search...");
 
@@ -24,6 +30,23 @@ function performSearch() {
         publication_type: document.querySelector('#publication_type').value, // Obtener el valor del filtro de tipo de publicación
         sorting: document.querySelector('[name="sorting"]:checked').value, // Obtener el valor del filtro de ordenamiento
     };
+
+    // Obtengo aquí los valores de la busqueda del advanced filter 
+    // Uso ? para el manejejo de elementos solo existentes en base_template.html
+    searchCriteria.author = document.getElementById('filter-author')?.value || '';
+    searchCriteria.description = document.getElementById('filter-description')?.value || '';
+    searchCriteria.uvl_files = document.getElementById('filter-file')?.value || '';
+    searchCriteria.date = document.getElementById('filter-date')?.value || '';
+    const tagsSelected = document.getElementById('tags');
+    if (tagsSelected && tagsSelected.value !== 'Any' && tagsSelected.value !== 'None' ) {
+        searchCriteria.tags = [tagsSelected.value]; //Si se selecciona un tag específico, lo envia como array de un elemento
+    } else if (tagsSelected && tagsSelected.value === 'None') {
+        searchCriteria.tags = []; //Si se selecciona 'None', envia un array vacío
+    } else {
+        searchCriteria.tags = null; //Si se selecciona 'Any' o no existe el elemento, envia null
+    }
+    console.log("Criteria to send:", searchCriteria);
+
 
     console.log(`Filtros: Query='${searchCriteria.query}', Type='${searchCriteria.publication_type}', Sorting='${searchCriteria.sorting}'`);
 
@@ -152,11 +175,39 @@ function setupFilterListeners() {
 // Función para manejar la carga inicial y el parámetro 'query' de la URL
 function handleInitialLoad() {
     let urlParams = new URLSearchParams(window.location.search);
-    let queryParam = urlParams.get('query');
-    const queryInput = document.getElementById('query');
+    const queryInputSidebar = document.getElementById('query'); //CAmpo lateral (Explore)
+    const queryInputHeader = document.getElementById('search-query'); //Campo del header
 
+    //Sincronizar el campo de búsqueda lateral con el parámetro 'query'
+    let queryParam = urlParams.get('query');
     if (queryParam && queryParam.trim() !== '') {
-        queryInput.value = queryParam;
+        if(queryInputSidebar) {
+            queryInputSidebar.value = queryParam;
+        }
+        if (queryInputHeader) {
+            queryInputHeader.value = queryParam;
+        }
+    } else {
+        if (queryInputSidebar && queryInputHeader) {
+            queryInputSidebar.value = queryInputHeader.value;
+        }
+    }
+
+    //Sincronizar el campo de advanced filter con los parámetros de la URL
+    const advancedFIltersMAp = {
+        'author': 'filter-author',
+        'description': 'filter-description',
+        'file': 'filter-file',
+        'date': 'filter-date',
+        'tags': 'tags'
+    };
+
+    for (const [paramName, elementId] of Object.entries(advancedFIltersMAp)) {
+        let paramValue = urlParams.get(paramName);
+        const element = document.getElementById(elementId);
+        if ( paramValue && paramValue.trim() !== '' && element) {
+            element.value = paramValue;
+        }
     }
 
     // Ejecuta la búsqueda inicial con los valores actuales del formulario
@@ -206,6 +257,13 @@ function clearFilters() {
         // Marca 'newest' como seleccionado por defecto
         option.checked = option.value === "newest";
     });
+
+    //Resetear los filtros avanzados del HEADER (base_template)
+    document.getElementById('filter-author').value = '';
+    document.getElementById('filter-description').value = '';
+    document.getElementById('filter-file').value = '';
+    document.getElementById('filter-date').value = '';
+    document.getElementById('tags').value = 'Any';
 
     // Realizar una nueva búsqueda con los filtros reseteados
     performSearch(); 

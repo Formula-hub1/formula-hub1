@@ -151,14 +151,69 @@ chico sundermann">
             <a class="sidebar-toggle js-sidebar-toggle">
                 <i class="hamburger align-self-center"></i>
             </a>
-
-            <form class="d-none d-sm-inline-block" onsubmit="submitSearchForm(event)">
+            
+            <form class="d-none d-sm-inline-block" onsubmit="submitSearchForm(event)" action="/explore" method="GET">
                 <div class="input-group input-group-navbar">
-                    <input type="text" id="search-query" class="form-control rounded-search"
-                           placeholder="Search datasets..." aria-label="Search">
-                </div>
-            </form>
+                    <input type="text" id="search-query" class="form-control rounded-search" placeholder="Search datasets..."
+                        aria-label="Search">
 
+                <button type="submit" class="d-none" tabindex="-1" aria-hidden="true"></button>
+
+                    <button class="btn dropdown-toggle" type="button" id="advancedFilterBtn" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        Advanced filter
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-3" aria-labelledby="advancedFilterBtn" style="min-width: 320px;" data-bs-auto-close="outside">
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label for="filter-author" class="form-label small mb-1">Author</label>
+                                <input type="text" id="filter-author" class="form-control form-control-sm"
+                                    placeholder="Author name">
+                            </div>
+                            <div class="col-12">
+                                <label for="filter-description" class="form-label small mb-1">Description</label>
+                                <input type="text" id="filter-description" class="form-control form-control-sm"
+                                    placeholder="Description">
+                            </div>
+                            <div class="col-12">
+                                <label for="filter-file" class="form-label small mb-1">UVL Files</label>
+                                <input type="text" id="filter-file" class="form-control form-control-sm" placeholder="UVL files">
+                            </div>
+                            <div class="col-12 mt-2"></div>
+                            <div class="col-12 mt-2">
+                                <label class="form-label small mb-1" for="tags">Tags</label>
+                                <select class="form-label" id="tags" name="tags" required="">
+                                    <option value="Any">Any</option>
+                                    <option value="None">None</option>
+
+                                </select>
+                                <!-- <div class="input-group input-group-sm">                            
+                                    <input type="text" id="selected-tags-display" class="form-control" placeholder="Select Tags"
+                                        aria-label="Selected Tags" readonly>                            
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="tagDropdownButton"
+                                        data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle Tags">
+                                    </button>                           
+                                    <ul class="dropdown-menu dropdown-menu-end p-2" aria-labelledby="tagDropdownButton" style="min-width: 200px;"
+                                        id="tagList">
+                                    </ul>
+                                </div> -->
+                            </div>
+                            <div class="col-12">
+                                <label for="filter-date" class="form-label small mb-1">Date</label>
+                                <input type="date" id="filter-date" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-12 text-end">
+                                <button type="button" class="btn btn-primary btn-sm mt-2"
+                                    onclick="applyAdvancedFilter(event)">Apply</button>
+                                <button type="button" class="btn btn-link btn-sm mt-2"
+                                    onclick="clearAdvancedFilter(event)">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+            </form>
+            
             <div class="navbar-collapse collapse">
                 <ul class="navbar-nav navbar-align">
                     <li class="nav-item dropdown">
@@ -284,13 +339,56 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
 </pre>
 
 <script src="{{ url_for("static", filename="js/app.js") }}"></script>
-
 <script>
+
+    // function submitSearchForm(event) {
+    //     event.preventDefault();
+    //     let query = document.getElementById('search-query').value;
+    //     window.location.href = '/explore?query=' + encodeURIComponent(query);
+    // }
 
     function submitSearchForm(event) {
         event.preventDefault();
-        let query = document.getElementById('search-query').value;
-        window.location.href = '/explore?query=' + encodeURIComponent(query);
+
+        const headerQuery = document.getElementById('search-query').value;
+
+        // Si estamos ya en /explore => ejecutar búsqueda AJAX igual que el sidebar
+        if (window.location.pathname.startsWith('/explore') && typeof performSearch === 'function') {
+
+            // sincronizar con la barra lateral
+            const sidebarQuery = document.getElementById('query');
+            if (sidebarQuery) {
+                sidebarQuery.value = headerQuery;
+            }
+
+            // sincronizar advanced filters
+            // document.getElementById('filter-author').value = document.getElementById('filter-author').value;
+            // document.getElementById('filter-description').value = document.getElementById('filter-description').value;
+            // document.getElementById('filter-file').value = document.getElementById('filter-file').value;
+            // document.getElementById('filter-date').value = document.getElementById('filter-date').value;
+
+            performSearch();
+            return;
+        }
+
+        // Si NO estamos en /explore => construir URL con todos los filtros
+        const params = new URLSearchParams();
+
+        if (headerQuery) params.append('query', headerQuery);
+
+        const author = document.getElementById('filter-author').value;
+        const description = document.getElementById('filter-description').value;
+        const file = document.getElementById('filter-file').value;
+        const date = document.getElementById('filter-date').value;
+        const tags = document.getElementById('tags').value;
+
+        if (author) params.append('author', author);
+        if (description) params.append('description', description);
+        if (file) params.append('file', file);
+        if (date) params.append('date', date);
+        if (tags !== 'Any') params.append('tags', tags);
+
+        window.location.href = `/explore?${params.toString()}`;
     }
 
     function copyText(div_identifier) {
@@ -298,6 +396,60 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
         textToCopy = textToCopy.trim();
         navigator.clipboard.writeText(textToCopy);
     }
+
+    function applyAdvancedFilter(event) {
+        if (event) {
+            event.preventDefault(); // Evita el envío del formulario
+        }
+
+        // Cierra el dropdown
+        const advancedFilterBtn = document.getElementById('advancedFilterBtn');
+        const dropdownInstance = bootstrap.Dropdown.getInstance(advancedFilterBtn);
+        if (dropdownInstance) {
+            dropdownInstance.hide();
+        } else {
+            // Fallback
+            advancedFilterBtn.click();
+        }
+
+        // 
+        if (window.location.pathname.startsWith('/explore') && typeof performSearch === 'function') {
+            // Sincroniza la query del header al campo lateral de Explore antes de buscar
+            const headerQuery = document.getElementById('search-query').value;
+            const sidebarQuery = document.getElementById('query');
+            if (sidebarQuery) {
+                sidebarQuery.value = headerQuery; //Sincroniza el campo lateral 'quer'
+            }
+            performSearch();
+        } else {
+            // Si no está en /explore, llama a la función de redirección de submitSearchForm            
+            submitSearchForm(event);
+        }
+    }
+
+    function clearAdvancedFilter(event) {
+        if (event) {
+            event.stopPropagation(); // Evita que Bootstrap cierre el dropdown
+            event.preventDefault();
+        }
+        document.getElementById('filter-author').value = '';
+        document.getElementById('filter-description').value = '';
+        document.getElementById('filter-file').value = '';
+        document.getElementById('filter-date').value = '';
+
+        // Limpiar el <select> de Tags volviendo a "Any"
+        document.getElementById('tags').value = 'Any';
+
+        if (window.location.pathname.startsWith('/explore') && typeof performSearch === 'function') {
+            performSearch();
+        } else {
+            // Si no está en /explore, llama a la función de redirección de
+        }
+
+        // Opcional: Ejecutar una búsqueda limpia (si lo deseas)
+        // if (typeof performSearch === 'function') { performSearch(); }
+    }
+
 
 </script>
 
