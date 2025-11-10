@@ -71,7 +71,7 @@ class DatasetRecommenderService:
         self.ds_download_repository = ds_download_repository
         self.k = k 
 
-    def get_recommendations(self, target_dataset: DataSet) -> List[int]:
+    def get_recommendations(self, target_dataset: DataSet) -> List[Dict[str, Any]]:
         
         all_datasets = self.dataset_repository.get_all_synchronized_datasets() 
         max_downloads = self.ds_download_repository.total_dataset_downloads() 
@@ -93,7 +93,12 @@ class DatasetRecommenderService:
                 downloads_count
             )
             
-            recommendations.append({'ds_id': candidate_ds.id, 'score': score})
-            
+            candidate_title = candidate_ds.ds_meta_data.title if candidate_ds.ds_meta_data else f"Suggested Dataset #{candidate_ds.id}"
+
+            recommendations.append({'ds_id': candidate_ds.id, 'score': score, 'title': candidate_title})
+
         recommendations.sort(key=lambda x: x['score'], reverse=True)
-        return [rec['ds_id'] for rec in recommendations[:self.k]]
+        return [{
+            'id': rec['ds_id'], 
+            'title': rec['title']
+        } for rec in recommendations[:self.k]]

@@ -385,7 +385,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         feather.replace();
 
-        const datasetId = "{{ dataset.id|tojson }}";
+        const datasetId = "{{ dataset.id }}";
         const recommendationContainer = document.getElementById('recommendation-list');
 
         if (datasetId && recommendationContainer) {
@@ -399,14 +399,14 @@
                 })
                 .then(data => {
                     recommendationContainer.innerHTML = '';
-                    
-                    if (data.recommended_ids && data.recommended_ids.length > 0) {
-                        
+
+                    if (data.recommended_datasets && data.recommended_datasets.length > 0) {
+
                         let htmlContent = '<div class="list-group">';
-                        data.recommended_ids.forEach(recId => {
+                        data.recommended_datasets.forEach(rec => {
                             htmlContent += `
-                                <a href="/dataset/${recId}" class="list-group-item list-group-item-action">
-                                    Suggested Dataset #${recId}
+                                <a href="/doi/10.1234/dataset${rec.id}/" class="list-group-item list-group-item-action">
+                                    ${rec.title}
                                 </a>`;
                         });
                         htmlContent += '</div>';
