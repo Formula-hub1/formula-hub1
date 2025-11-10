@@ -63,6 +63,29 @@ class DSMetaData(db.Model):
     ds_metrics = db.relationship("DSMetrics", uselist=False, backref="ds_meta_data", cascade="all, delete")
     authors = db.relationship("Author", backref="ds_meta_data", lazy=True, cascade="all, delete")
 
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(50), nullable=False)
+
+    parent_id = db.Column(db.Integer, db.ForeignKey("comment.id",ondelete="CASCADE"), nullable=True)
+    dataset_id = db.Column(db.Integer, db.ForeignKey("data_set.id"), nullable=False)
+    user_id=db.Column(db.Integer,db.ForeignKey("user.id"))
+    user=db.relationship("User")
+
+
+    #
+    children = db.relationship(
+        "Comment",
+        backref=db.backref("parent", remote_side=[id]),
+        cascade="all, delete-orphan",
+        single_parent=True
+    )
+    def to_dict(self):
+        return {
+            "id":self.id,
+            "content":self.content,
+            "children":[child.to_dict() for child in self.children]
+        }
 
 class DataSet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -80,6 +103,13 @@ class DataSet(db.Model):
         nullable=True, 
         default='[]'
     )
+
+    comments = db.relationship(
+        "Comment",
+        backref="dataset",
+        cascade="all, delete-orphan",
+        lazy=True
+    )   
 
     def name(self):
         return self.ds_meta_data.title
@@ -169,3 +199,4 @@ class DOIMapping(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dataset_doi_old = db.Column(db.String(120))
     dataset_doi_new = db.Column(db.String(120))
+
