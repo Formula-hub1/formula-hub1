@@ -21,7 +21,7 @@ from flask_login import current_user, login_required
 
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.forms import DataSetForm
-from app.modules.dataset.models import DSDownloadRecord
+from app.modules.dataset.models import DSDownloadRecord, Comment
 from app.modules.dataset.services import (
     AuthorService,
     DataSetService,
@@ -29,8 +29,12 @@ from app.modules.dataset.services import (
     DSDownloadRecordService,
     DSMetaDataService,
     DSViewRecordService,
+    CommentService
 )
 from app.modules.zenodo.services import ZenodoService
+
+from app.modules.auth.services import AuthenticationService
+comment_service=CommentService()
 
 logger = logging.getLogger(__name__)
 
@@ -304,3 +308,71 @@ def get_recommendations_api(dataset_id):
     except Exception as exc:
         logger.error(f"Error processing recommendation data for DS {dataset_id}: {exc}")
         return jsonify({'error': 'Internal error processing recommendation data.'}), 500
+
+
+@dataset_bp.route('/datasets/<int:dataset_id>/recommendations', methods=['GET'])
+def get_recommendations_api(dataset_id):
+    try:
+        dataset = dataset_service.get_by_id(dataset_id) 
+    except:
+        return jsonify({'error': 'Dataset not found'}), 404
+    
+    if not dataset:
+        return jsonify({'error': 'Dataset not found'}), 404
+        
+    try:
+        json_data = dataset.recommended_datasets_json
+        
+        if json_data:
+            recommended_datasets = json.loads(json_data)
+        else:
+            recommended_datasets = [] 
+
+        return jsonify({
+            "dataset_id": dataset_id,
+            "recommended_datasets": recommended_datasets
+        }), 200
+
+    except Exception as exc:
+        logger.error(f"Error processing recommendation data for DS {dataset_id}: {exc}")
+        return jsonify({'error': 'Internal error processing recommendation data.'}), 500
+
+@dataset_bp.route("/datasets/<int:dataset_id>/comments", methods=["POST"])
+@login_required  
+def add_comment(dataset_id):
+    content = request.form.get("content")
+    if not content or content.strip() == '':
+        abort(400, description="El contenido del comentario no puede estar vacío.")
+    parent_id = request.form.get("parent_id") or None
+    auth_service=AuthenticationService()
+    user=auth_service.get_authenticated_user()
+    dataset=dataset_service.get_or_404(dataset_id)
+    comment_service.create(
+        content=content,
+        dataset_id=dataset_id,
+        parent_id=parent_id,
+        user_id=user.id)
+    return redirect(f'/doi/{dataset.ds_meta_data.dataset_doi}')
+
+@dataset_bp.route("/datasets/<int:dataset_id>/comments/fragment", methods=["GET"])
+def comments_fragment(dataset_id):
+    """Devuelve el HTML de los comentarios (sin reply) para el modal"""
+    dataset = dataset_service.get_or_404(dataset_id)
+    comments = Comment.query.filter_by(dataset_id=dataset_id, parent_id=None).all()
+    return render_template("dataset/comments_list.html", comments=comments)
+
+
+@dataset_bp.route("/datasets/<int:dataset_id>/comments/ajax", methods=["POST"])
+@login_required
+def add_comment_ajax(dataset_id):
+    """Crea un comentario desde el modal y devuelve la lista actualizada"""
+    content = (request.form.get("content") or "").strip()
+    if not content:
+        return jsonify({"ok": False, "error": "El contenido no puede estar vacío."}), 400
+
+    user = AuthenticationService().get_authenticated_user()
+    comment_service.create(content=content, dataset_id=dataset_id, user_id=user.id)
+
+    comments = Comment.query.filter_by(dataset_id=dataset_id, parent_id=None).all()
+    html = render_template("dataset/comments_list.html", comments=comments)
+    return jsonify({"ok": True, "html": html})
