@@ -97,6 +97,13 @@
                                     <i data-feather="download" class="center-button-icon"></i>
                                     Download ({{ dataset.get_file_total_size_for_human() }})
                                 </a>
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-sm btn-comments"
+                                        data-dataset-id="{{ dataset.id }}"
+                                        style="border-radius: 5px;">
+                                  <i data-feather="message-circle" class="center-button-icon"></i>
+                                  Comments
+                                </button>
                             </div>
                         </div>
 
@@ -279,8 +286,89 @@
 
     </div>
 
+    <div id="comments-modal" hidden>
+        <div class="modal-backdrop" style="position:fixed; inset:0; background:rgba(0,0,0,0.35);"></div>
+
+        <div class="modal-box" style="
+            position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+            background:#fff; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,.2);
+            width:min(560px, 92vw); max-height:70vh; display:flex; flex-direction:column;
+            z-index:1050;">
+            <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #eee;">
+
+            <h5 class="mb-0">Comments</h5>
+            <button type="button" class="modal-close btn btn-sm btn-light" aria-label="Close">×</button>
+            </div>
+
+            <div id="comments-container" class="modal-body" style="padding:12px 16px; overflow:auto;">
+            <!-- aquí se inyecta dataset/_comments_list.html -->
+            </div>
+
+            <form id="comment-form" class="modal-footer" style="padding:12px 16px; border-top:1px solid #eee; display:flex; gap:8px;">
+            <input type="hidden" name="dataset_id" id="comments-dataset-id">
+            <textarea name="content" rows="3" class="form-control" placeholder="Write a comment…" required
+                        style="flex:1; resize:vertical;"></textarea>
+            <button type="submit" class="btn btn-primary">Add</button>
+            </form>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
     <script src="{{ url_for('public.scripts') }}"></script>
+
+    <script>
+        (function () {
+            const modal = document.getElementById('comments-modal');
+            const container = document.getElementById('comments-container');
+            const form = document.getElementById('comment-form');
+            const hiddenId = document.getElementById('comments-dataset-id');
+
+            // Abrir modal y cargar comentarios
+            document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-comments');
+            if (!btn) return;
+
+            e.preventDefault();
+            const id = btn.dataset.datasetId;
+            hiddenId.value = id;
+
+            const res = await fetch(`/datasets/${id}/comments/fragment`, { credentials: 'same-origin' });
+            container.innerHTML = await res.text();
+            modal.hidden = false;
+            });
+
+            // Cerrar modal
+            modal?.querySelector('.modal-close')?.addEventListener('click', () => { modal.hidden = true; });
+            modal?.querySelector('.modal-backdrop')?.addEventListener('click', () => { modal.hidden = true; });
+
+            // Enviar nuevo comentario (si no logueado, el POST redirige a login)
+            form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = hiddenId.value;
+            const data = new FormData(form);
+
+            const res = await fetch(`/datasets/${id}/comments/ajax`, {
+                method: 'POST',
+                body: data,
+                credentials: 'same-origin'
+            });
+
+            const ct = res.headers.get('content-type') || '';
+            if (!ct.includes('application/json')) {
+                // probablemente se redirigió a login
+                window.location.href = "/login";
+                return;
+            }
+
+            const json = await res.json();
+            if (json.ok) {
+                container.innerHTML = json.html;
+                form.reset();
+            } else {
+                alert(json.error || 'Error adding comment');
+            }
+            });
+        })();
+    </script>
 {% endblock %}
