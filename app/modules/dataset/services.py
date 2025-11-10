@@ -16,6 +16,7 @@ from app.modules.dataset.repositories import (
     DSDownloadRecordRepository,
     DSMetaDataRepository,
     DSViewRecordRepository,
+    CommentRepository
 )
 from app.modules.featuremodel.repositories import FeatureModelRepository, FMMetaDataRepository
 from app.modules.hubfile.repositories import (
@@ -197,6 +198,9 @@ class DOIMappingService(BaseService):
         else:
             return None
 
+class CommentService(BaseService):
+    def __init__(self):
+        super().__init__(CommentRepository())
 
 class SizeService:
 
