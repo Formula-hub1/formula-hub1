@@ -22,7 +22,7 @@ class ZenodoService(BaseService):
     def get_zenodo_url(self):
 
         FLASK_ENV = os.getenv("FLASK_ENV", "development")
-        ZENODO_API_URL = "hhtp://localhost/fakenodo/api"
+        ZENODO_API_URL = "http://localhost/fakenodo/api"
 
         #if FLASK_ENV == "development":
         #    ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
