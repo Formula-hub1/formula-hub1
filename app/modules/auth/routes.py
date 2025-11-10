@@ -2,7 +2,7 @@ from flask import redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 
 from app.modules.auth import auth_bp
-from app.modules.auth.forms import LoginForm, SignupForm
+from app.modules.auth.forms import LoginForm, SignupForm, RecoverPasswordForm
 from app.modules.auth.services import AuthenticationService
 from app.modules.profile.services import UserProfileService
 
@@ -52,3 +52,21 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("public.index"))
+
+@auth_bp.route("/recover-password/", methods=["GET", "POST"])
+def show_recover_password_form():
+    if current_user.is_authenticated:
+        return redirect(url_for("public.index"))
+
+    form = RecoverPasswordForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        if authentication_service.is_email_available(email):
+            return render_template("auth/recover_password_form.html", form=form, error=f"Email {email} does not belong to a user")
+
+    try:
+        user = authentication_service.send_email(**form.data)
+    except Exception as exc:
+        return render_template("auth/recover_password_form.html", form=form, error=f"Error sending email: {exc}")
+
+    return render_template("auth/recover_password_form.html", form=form)
