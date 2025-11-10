@@ -292,13 +292,13 @@ def get_recommendations_api(dataset_id):
         json_data = dataset.recommended_datasets_json
         
         if json_data:
-            recommended_ids = json.loads(json_data)
+            recommended_datasets = json.loads(json_data)
         else:
-            recommended_ids = [] 
-        
+            recommended_datasets = [] 
+
         return jsonify({
             "dataset_id": dataset_id,
-            "recommended_ids": recommended_ids
+            "recommended_datasets": recommended_datasets
         }), 200
 
     except Exception as exc:
