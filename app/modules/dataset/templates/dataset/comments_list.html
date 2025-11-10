@@ -1,0 +1,10 @@
+<div class="comments-list">
+  {% for c in comments %}
+    <div class="comment-item" style="border-bottom: 1px solid #ddd; margin-bottom: 8px; padding-bottom: 4px;">
+      <div><b>{{ c.user.profile.name }}</b></div>
+      <div>{{ c.content }}</div>
+    </div>
+  {% else %}
+    <div class="text-muted">No comments yet.</div>
+  {% endfor %}
+</div>
