@@ -6,6 +6,8 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 
+from app.extensions import mail
+
 from core.configuration.configuration import get_app_version, config_mail
 from core.managers.config_manager import ConfigManager
 from core.managers.error_handler_manager import ErrorHandlerManager
@@ -18,8 +20,6 @@ load_dotenv()
 # Create the instances
 db = SQLAlchemy()
 migrate = Migrate()
-
-mail = Mail() 
 
 def create_app(config_name="development"):
     app = Flask(__name__)
