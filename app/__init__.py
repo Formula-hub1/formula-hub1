@@ -30,6 +30,12 @@ def create_app(config_name="development"):
     db.init_app(app)
     migrate.init_app(app, db)
 
+    # ============================================================================
+    # ✅ AÑADIDO: Initialize Mail Manager for email notifications
+    # ============================================================================
+    from core.managers.mail_manager import mail_manager
+    mail_manager.init_app(app)
+
     # Register modules
     module_manager = ModuleManager(app)
     module_manager.register_modules()
