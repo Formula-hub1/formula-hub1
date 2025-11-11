@@ -184,23 +184,19 @@
 
         </div>
 
-    </div>
 
-    
-        
-    <div class="card">
+        <div class="card">
 
-        <div class="card-body">
+            <div class="card-body">
 
-            <h3> Recommended datasets </h3>
-            
-            <div id="recommendation-list">
-                <p class="text-secondary" id="loading-message">Loading suggestions...</p>
+                <h3> Recommended datasets </h3>
+                
+                <div id="recommendation-list">
+                    <p class="text-secondary" id="loading-message">Loading suggestions...</p>
+                </div>
+
             </div>
-
         </div>
-    </div>
-
         <div class="card">
 
             <div class="card-body">
@@ -298,12 +294,7 @@
                                         <li>
                                             <a class="dropdown-item" href="javascript:void(0);" onclick="checkUVL('{{ file.id }}')">Syntax check</a>
                                         </li>
-                                        <!--
-                                        <li>
-                                            <a class="dropdown-item" href="{{ url_for('flamapy.valid', file_id=file.id) }}">SAT validity check</a>
-                                        </li>
-                                        -->
-                                    </ul>
+                                        </ul>
                                 </div>
                                 
                                 <div class="btn-group" role="group">
@@ -351,7 +342,6 @@
     
 </div>
 
-<!-- Modal-->
 <div class="modal fade" id="fileViewerModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" style="height: 80vh; display: flex; align-items: center;">
         <div class="modal-content" style="height: 80vh;">
