@@ -3,6 +3,9 @@ import itsdangerous
 
 from flask_login import current_user, login_user
 from flask import current_app, url_for
+from flask_mail import Message
+
+from app.extensions import mail
 
 from app.modules.auth.models import User
 from app.modules.auth.repositories import UserRepository
@@ -16,7 +19,8 @@ class AuthenticationService(BaseService):
 
 
     def __init__(self):
-        super().__init__(UserRepository())
+        self.user_repository = UserRepository()
+        super().__init__(self.user_repository)
         self.user_repository = UserRepository()
         self.user_profile_repository = UserProfileRepository()
 
@@ -86,7 +90,7 @@ class AuthenticationService(BaseService):
         return os.path.join(uploads_folder_name(), "temp", str(user.id))
 
 
-    def generate_reset_token(user_id):
+    def generate_reset_token(self, user_id):
         return self._get_serializer().dumps({"user_id": user_id})
 
 
@@ -104,7 +108,7 @@ class AuthenticationService(BaseService):
             print(f"Unexpected error during token verification: {exc}")
             return None
 
-    def update_password(user_id, password):
+    def update_password(self, user_id, password):
         user = User.query.get(user_id)
         if user:
             user.set_password(password)
