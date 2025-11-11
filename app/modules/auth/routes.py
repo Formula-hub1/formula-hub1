@@ -1,8 +1,9 @@
 from flask import redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 
+from app import db
 from app.modules.auth import auth_bp
-from app.modules.auth.forms import LoginForm, SignupForm, RecoverPasswordForm
+from app.modules.auth.forms import LoginForm, SignupForm, RecoverPasswordForm, ResetPasswordForm
 from app.modules.auth.services import AuthenticationService
 from app.modules.profile.services import UserProfileService
 
@@ -65,8 +66,27 @@ def show_recover_password_form():
             return render_template("auth/recover_password_form.html", form=form, error=f"Email {email} does not belong to a user")
 
     try:
-        user = authentication_service.send_email(**form.data)
+        authentication_service.send_email(**form.data)
     except Exception as exc:
         return render_template("auth/recover_password_form.html", form=form, error=f"Error sending email: {exc}")
 
     return render_template("auth/recover_password_form.html", form=form)
+
+
+@auth_bp.route("/reset-password/", methods=["GET", "POST"])
+def reset_password_form():
+    token = request.args.get("token")
+    user_id = authentication_service.verify_reset_token(token)
+    if not user_id:
+        return redirect(url_for("auth.login"))
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        authentication_service.update_password(current_user.id, **form.data)
+        db.session.commit()
+        return redirect(url_for('auth/login_form.html'))
+
+    return render_template('auth/reset_password_form.html', form=form)
+
+
+
