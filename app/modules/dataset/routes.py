@@ -293,7 +293,7 @@ def get_recommendations_api(dataset_id):
         return jsonify({'error': 'Dataset not found'}), 404
         
     try:
-        json_data = dataset.recommended_datasets_json
+        json_data = dataset_service.get_or_recalculate_recommendations(dataset)
         
         if json_data:
             recommended_datasets = json.loads(json_data)
