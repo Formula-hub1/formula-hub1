@@ -1,6 +1,8 @@
 import os
+import itsdangerous
 
 from flask_login import current_user, login_user
+from flask import current_app, url_for
 
 from app.modules.auth.models import User
 from app.modules.auth.repositories import UserRepository
@@ -11,9 +13,15 @@ from core.services.BaseService import BaseService
 
 
 class AuthenticationService(BaseService):
+
+
     def __init__(self):
         super().__init__(UserRepository())
+        self.user_repository = UserRepository()
         self.user_profile_repository = UserProfileRepository()
+
+    def _get_serializer(self):
+        return itsdangerous.URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
 
     def login(self, email, password, remember=True):
         user = self.repository.get_by_email(email)
@@ -76,3 +84,54 @@ class AuthenticationService(BaseService):
 
     def temp_folder_by_user(self, user: User) -> str:
         return os.path.join(uploads_folder_name(), "temp", str(user.id))
+
+
+    def generate_reset_token(user_id):
+        return self._get_serializer().dumps({"user_id": user_id})
+
+
+    def verify_reset_token(self, token):
+        try:
+            data = self._get_serializer().loads(token, max_age=3600)
+            
+            if not data or "user_id" not in data:
+                return None
+            
+            return data.get("user_id")
+        except (itsdangerous.SignatureExpired, itsdangerous.BadTimeSignature):
+            return None
+        except Exception as exc:
+            print(f"Unexpected error during token verification: {exc}")
+            return None
+
+    def update_password(user_id, password):
+        user = User.query.get(user_id)
+        if user:
+            user.set_password(password)
+            self.repository.commit()
+    
+    
+    def send_email(self, **kwargs) -> str:
+        email = kwargs.get("email")
+        #if not email:
+            #raise ValueError("Email address is required")
+
+        user = self.user_repository.get_by_email(email)
+        if user is None:
+            return "Email should be associated to an existing account"
+
+        recover_url = url_for('auth.reset_password_form', token=self.generate_reset_token(user.id), _external=True)
+
+        msg = Message(
+            subject="Password recovery - Formula Hub",
+            recipients=[email],
+            body=f"Click this link to reset your password:\n{recover_url}"
+        )
+        
+        try:
+            with current_app.app_context():
+                mail.send(msg)
+        except Exception as exc:
+            raise exc
+
+        return f"Email sent to {email}"
