@@ -4,6 +4,7 @@ import os
 import shutil
 import uuid
 from typing import Optional
+from datetime import datetime, timezone, timedelta
 
 from flask import request
 
@@ -31,6 +32,8 @@ from core.services.DatasetRecommenderService import DatasetRecommenderService
 
 logger = logging.getLogger(__name__)
 
+EXPIRATION_TIME = timedelta(hours=1)
+ANCIENT_DATE = datetime(2000, 1, 1, tzinfo=timezone.utc)
 
 def calculate_checksum_and_size(file_path):
     file_size = os.path.getsize(file_path)
@@ -59,16 +62,40 @@ class DataSetService(BaseService):
     def save_dataset_recommendations(self, dataset: DataSet):
         """Calcula las recomendaciones y las guarda en el objeto DataSet."""
         
-        # 1. Ejecución: Llama al motor de lógica pura
-        recommended_ids = self.dataset_recommender_service.get_recommendations(dataset)
+        recommended_datasets = self.dataset_recommender_service.get_recommendations(dataset)
         
-        # 2. Persistencia: Asigna la lista de IDs como cadena JSON
-        dataset.recommended_datasets_json = json.dumps(recommended_ids)
+        dataset.recommended_datasets_json = json.dumps(recommended_datasets)
+
+        dataset.recalculated_at = datetime.now(timezone.utc) 
         
-        # 3. Guardar: Persiste el cambio en la base de datos
         self.repository.session.commit()
+        return recommended_datasets
+    
+    def get_or_recalculate_recommendations(self, dataset: DataSet):
+    
+        if dataset.recalculated_at:
+            last_calculated = dataset.recalculated_at.replace(tzinfo=timezone.utc)
+        else:
+            last_calculated = ANCIENT_DATE
+
+        # 1. Comprobar si la recomendación está obsoleta
+        is_obsolete = (
+            (datetime.now(timezone.utc) - last_calculated) > EXPIRATION_TIME
+        )
         
-        return recommended_ids
+        if is_obsolete:
+            # 2. Si está obsoleta (o es la primera vez), forzamos el recálculo
+            self.save_dataset_recommendations(dataset)
+            
+            # El campo JSON ahora estará actualizado
+            return dataset.recommended_datasets_json
+        else:
+            # 3. Si es reciente, devolvemos el resultado guardado
+            return dataset.recommended_datasets_json
+
+        # Para forzar siempre el recálculo, descomenta las líneas siguientes:
+        # self.save_dataset_recommendations(dataset)
+        # return dataset.recommended_datasets_json
 
     def move_feature_models(self, dataset: DataSet):
         current_user = AuthenticationService().get_authenticated_user()
