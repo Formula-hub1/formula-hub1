@@ -50,10 +50,19 @@ def preview_upload():
 @login_required
 def confirm_upload():
     preview_data = session.pop("preview_data", None)
+    description = request.form.get("dataset_description", "").strip()
 
     if not preview_data:
         flash("Preview data missing. Try again.", "danger")
         return redirect(url_for("uploader.index"))
+
+    if not description:
+        flash("La descripción no puede estar vacía.", "danger")
+        return redirect(url_for('uploader.review_upload'))
+
+    if len(description) < 3:
+        flash("La descripción debe tener al menos 3 caracteres.", "danger")
+        return redirect(url_for('uploader.review_upload'))
 
     preview_data["title"] = request.form.get("dataset_title")
     preview_data["description"] = request.form.get("dataset_description")
