@@ -8,9 +8,11 @@ import base64
 
 service = UploaderService()
 
+
 @uploader_bp.route('/uploader', methods=['GET'])
 def index():
     return render_template('uploader/index.html')
+
 
 @uploader_bp.route("/uploader/preview", methods=["POST"])
 @login_required
@@ -28,7 +30,8 @@ def preview_upload():
         flash(str(e), "danger")
         return redirect(url_for("uploader.index"))
 
-    temp_folder = os.path.join(service.base_upload_dir, f"user_{current_user.id}", "temp")
+    temp_folder = os.path.join(service.base_upload_dir,
+                               f"user_{current_user.id}", "temp")
     os.makedirs(temp_folder, exist_ok=True)
 
     for f in preview_data["files"]:
@@ -39,11 +42,13 @@ def preview_upload():
             f_out.write(content_bytes)
 
     serializable_preview = preview_data.copy()
-    serializable_preview["publication_type"] = str(preview_data["publication_type"].value)
+    serializable_preview["publication_type"] = str(
+        preview_data["publication_type"].value
+        )
     session["preview_data"] = serializable_preview
 
-    return render_template("uploader/upload_preview.html", dataset=preview_data)
-
+    return render_template("uploader/upload_preview.html",
+                           dataset=preview_data)
 
 
 @uploader_bp.route("/uploader/confirm", methods=["POST"])
@@ -66,7 +71,9 @@ def confirm_upload():
 
     preview_data["title"] = request.form.get("dataset_title")
     preview_data["description"] = request.form.get("dataset_description")
-    preview_data["publication_type"] = PublicationType(request.form.get("dataset_publication_type"))
+    preview_data["publication_type"] = PublicationType(
+        request.form.get("dataset_publication_type")
+    )
     preview_data["tags"] = request.form.get("dataset_tags")
 
     for i, f in enumerate(preview_data["files"]):

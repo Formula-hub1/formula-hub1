@@ -1,4 +1,10 @@
-import io, base64, zipfile, os, requests, hashlib, shutil
+import io
+import base64
+import zipfile
+import os
+import requests
+import hashlib
+import shutil
 from app.modules.dataset.models import DataSet, DSMetaData, PublicationType
 from app.modules.featuremodel.models import FeatureModel, FMMetaData
 from app.modules.hubfile.models import Hubfile
@@ -7,10 +13,12 @@ from core.services.BaseService import BaseService
 from pathlib import Path
 from flask_login import current_user
 
+
 def calculate_checksum_and_size_bytes(content_bytes):
     checksum = hashlib.sha256(content_bytes).hexdigest()
     size = len(content_bytes)
     return checksum, size
+
 
 class UploaderService(BaseService):
 
@@ -58,7 +66,7 @@ class UploaderService(BaseService):
         }
 
     def save_confirmed_upload(self, data, user_id):
-        """Crea la publicación en DB y guarda los archivos en disco + carpeta temporal."""
+        """Crea la publicación en DB y guarda los archivos."""
 
         ds_meta = DSMetaData(
             title=data["title"],
@@ -94,7 +102,8 @@ class UploaderService(BaseService):
             db.session.add(fm_meta)
             db.session.commit()
 
-            fm = FeatureModel(data_set_id=dataset.id, fm_meta_data_id=fm_meta.id)
+            fm = FeatureModel(data_set_id=dataset.id,
+                              fm_meta_data_id=fm_meta.id)
             db.session.add(fm)
             db.session.commit()
 
