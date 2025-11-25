@@ -1,0 +1,60 @@
+{% extends "base_template.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Review Upload</h2>
+    <form method="post" action="{{ url_for('uploader.confirm_upload') }}">
+
+        <h4>Dataset Information</h4>
+
+        <div class="mb-3">
+            <label class="form-label">Dataset Title</label>
+            <input type="text" class="form-control" name="dataset_title" value="{{ dataset.title }}">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Dataset Description</label>
+            <textarea class="form-control" name="dataset_description">{{ dataset.description }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Publication Type</label>
+            <select class="form-select" name="dataset_publication_type">
+                {% for pt in [
+                    'none','annotationcollection','book','section','conferencepaper',
+                    'datamanagementplan','article','patent','preprint','deliverable',
+                    'milestone','proposal','report','softwaredocumentation',
+                    'taxonomictreatment','technicalnote','thesis','workingpaper','other'
+                ] %}
+                    <option value="{{ pt }}"
+                        {% if dataset.publication_type == pt %}selected{% endif %}>
+                        {{ pt|capitalize }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tags</label>
+            <input type="text" class="form-control" name="dataset_tags" value="{{ dataset.tags }}">
+        </div>
+
+        <hr>
+
+        <h4>Files</h4>
+
+        {% for f in dataset.files %}
+            <div class="card mb-3 p-3">
+                <h5>{{ f.uvl_filename }}</h5>
+
+                <div class="mb-2">
+                    <label class="form-label">Title</label>
+                    <input type="text" class="form-control" name="title_{{ loop.index0 }}" value="{{ f.title }}">
+                </div>
+            </div>
+        {% endfor %}
+
+        <button class="btn btn-primary" type="submit">Confirm Upload</button>
+        <a class="btn btn-secondary" href="{{ url_for('uploader.index') }}">Cancel</a>
+    </form>
+</div>
+{% endblock %}
