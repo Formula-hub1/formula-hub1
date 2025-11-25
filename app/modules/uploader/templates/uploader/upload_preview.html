@@ -13,7 +13,7 @@
 
         <div class="mb-3">
             <label class="form-label">Dataset Description</label>
-            <textarea class="form-control" name="dataset_description">{{ dataset.description }}</textarea>
+            <textarea class="form-control" name="dataset_description" required>{{ dataset.description }}</textarea>
         </div>
 
         <div class="mb-3">
@@ -49,6 +49,11 @@
                 <div class="mb-2">
                     <label class="form-label">Title</label>
                     <input type="text" class="form-control" name="title_{{ loop.index0 }}" value="{{ f.title }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="description_{{ loop.index0 }}">{{ f.description }}</textarea>
                 </div>
             </div>
         {% endfor %}
