@@ -103,6 +103,12 @@ chico sundermann">
                         </a>
                     </li>
 
+                    <li class="sidebar-item {{ 'active' if request.endpoint == 'uploader.index' else '' }}">
+                        <a class="sidebar-link" href="{{ url_for('uploader.index') }}">
+                            <i class="align-middle" data-feather="upload-cloud"></i> <span class="align-middle">Upload files</span>
+                        </a>
+                    </li>
+
                     <li class="sidebar-item {{ 'active' if request.endpoint == 'dataset.list_dataset' else '' }}">
                         <a class="sidebar-link" href="{{ url_for('dataset.list_dataset') }}">
                             <i class="align-middle" data-feather="list"></i> <span

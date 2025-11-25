@@ -1,0 +1,16 @@
+{% extends "base_template.html" %}
+
+{% block content %}
+<h1>Upload Result</h1>
+
+<p>Dataset created successfully!</p>
+
+<ul>
+    <li>ID: {{ dataset.id }}</li>
+    <li>Title: {{ dataset.ds_meta_data.title }}</li>
+    <li>Description: {{ dataset.ds_meta_data.description }}</li>
+    <li>Publication Type: {{ dataset.ds_meta_data.publication_type }}</li>
+</ul>
+
+<a href="{{ url_for('uploader.index') }}">Back to Uploader</a>
+{% endblock %}
