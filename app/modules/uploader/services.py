@@ -99,7 +99,7 @@ class UploaderService(BaseService):
             db.session.commit()
 
             file_path = dataset_dir / f["uvl_filename"]
-            file_path.parent.mkdir(parents=True, exist_ok=True)  # crea subcarpetas si es necesario
+            file_path.parent.mkdir(parents=True, exist_ok=True)
             with open(file_path, "wb") as f_out:
                 f_out.write(content_bytes)
 
