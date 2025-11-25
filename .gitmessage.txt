@@ -1,0 +1,16 @@
+# ---------------------------------------------------------------------
+# CONVENCION DE COMMIT (Conventional Commits)
+#
+# Linea 1: <type>[opcional_scope]: <descripción_concisa> (Max 70 chars)
+# Linea 2: (Dejar en blanco)
+# Linea 3+: Descripción detallada (si es necesaria)
+# ---------------------------------------------------------------------
+#
+# Tipos (Types) Requeridos:
+# feat:       Nueva funcionalidad (ej. Algoritmo de recomendación)
+# fix:        Corrección de un bug (ej. Error 500 en la API)
+# docs:       Cambios en documentación (README, wiki)
+# style:      Cambios de formato, puntos y comas, etc. (no afecta el código).
+# test:       Añadir o corregir tests unitarios o de integración.
+#
+# ---------------------------------------------------------------------
