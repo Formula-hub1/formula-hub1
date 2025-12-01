@@ -1,0 +1,9 @@
+# Archivo de configuración para conventional-pre-commit
+header-max-length: 70
+header-min-length: 10
+types:
+  - feat
+  - fix
+  - docs
+  - style
+  - test

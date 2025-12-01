@@ -1,0 +1,24 @@
+name: ✨ Solicitud de Característica
+description: Sugerir una idea o mejora para UVLHub.
+title: "[FEAT] Título de la característica"
+labels: ["enhancement", "feature"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: ¿Cuál es el problema que intenta resolver esta característica?
+      description: Una descripción clara y concisa de lo que es el problema.
+    validations:
+      required: true
+  - type: textarea
+    id: solucion
+    attributes:
+      label: Describa la solución que le gustaría
+      description: Una descripción clara y concisa de lo que quiere que suceda.
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas que ha considerado
+      description: ¿Ha considerado soluciones o características alternativas?

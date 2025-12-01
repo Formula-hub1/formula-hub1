@@ -1,0 +1,46 @@
+name: 🐛 Bug Report
+description: Informar sobre un error o comportamiento inesperado
+title: "[BUG] Descripción breve del problema"
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Gracias por tomarte el tiempo de reportar este problema. Por favor, completa los siguientes campos."
+  - type: textarea
+    id: descripcion-bug
+    attributes:
+      label: Descripción del Bug
+      description: Explica claramente qué sucede, incluyendo el comportamiento que esperabas.
+      placeholder: Describe el problema detalladamente.
+    validations:
+      required: true
+  - type: textarea
+    id: pasos-reproducir
+    attributes:
+      label: Pasos para Reproducir
+      description: Lista los pasos necesarios para que nosotros también podamos ver el error.
+      placeholder: |
+        1. Ir a '...'
+        2. Clic en '....'
+        3. Scroll hacia '....'
+        4. Ver error
+    validations:
+      required: true
+  - type: dropdown
+    id: version
+    attributes:
+      label: Versión de UVLHub
+      description: ¿En qué versión del proyecto encontraste el problema?
+      options:
+        - "v1.0.0 (Latest)"
+        - "v0.9.0"
+        - "Otro (especificar en la descripción)"
+    validations:
+      required: true
+  - type: checkboxes
+    id: terminos
+    attributes:
+      label: Checklist
+      options:
+        - label: He buscado en Issues existentes y no encontré un reporte similar.
+          required: true
