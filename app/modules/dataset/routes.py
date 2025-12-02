@@ -7,34 +7,25 @@ import uuid
 from datetime import datetime, timezone
 from zipfile import ZipFile
 
-from flask import (
-    abort,
-    jsonify,
-    make_response,
-    redirect,
-    render_template,
-    request,
-    send_from_directory,
-    url_for,
-)
+from flask import abort, jsonify, make_response, redirect, render_template, request, send_from_directory, url_for
 from flask_login import current_user, login_required
 
+from app.modules.auth.services import AuthenticationService
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.forms import DataSetForm
-from app.modules.dataset.models import DSDownloadRecord, Comment
+from app.modules.dataset.models import Comment, DSDownloadRecord
 from app.modules.dataset.services import (
     AuthorService,
+    CommentService,
     DataSetService,
     DOIMappingService,
     DSDownloadRecordService,
     DSMetaDataService,
     DSViewRecordService,
-    CommentService
 )
 from app.modules.zenodo.services import ZenodoService
 
-from app.modules.auth.services import AuthenticationService
-comment_service=CommentService()
+comment_service = CommentService()
 
 logger = logging.getLogger(__name__)
 
@@ -68,11 +59,10 @@ def create_dataset():
             return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
 
         try:
-            dataset_service.save_dataset_recommendations(dataset) 
+            dataset_service.save_dataset_recommendations(dataset)
             logger.info(f"Recommendations calculated and saved locally for dataset: {dataset.id}")
         except Exception as e:
             logger.exception(f"Exception while calculating recommendations locally: {e}")
-            pass
 
         data = {}
         try:
@@ -282,82 +272,49 @@ def get_unsynchronized_dataset(dataset_id):
     return render_template("dataset/view_dataset.html", dataset=dataset)
 
 
-@dataset_bp.route('/datasets/<int:dataset_id>/recommendations', methods=['GET'])
+@dataset_bp.route("/datasets/<int:dataset_id>/recommendations", methods=["GET"])
 def get_recommendations_api(dataset_id):
     try:
-        dataset = dataset_service.get_by_id(dataset_id) 
-    except:
-        return jsonify({'error': 'Dataset not found'}), 404
-    
+        dataset = dataset_service.get_by_id(dataset_id)
+    except Exception as exc:
+        logger.error(f"Error retrieving dataset {dataset_id}: {exc}")
+        return jsonify({"error": "Dataset not found"}), 404
+
     if not dataset:
-        return jsonify({'error': 'Dataset not found'}), 404
-        
+        return jsonify({"error": "Dataset not found"}), 404
+
     try:
         json_data = dataset_service.get_or_recalculate_recommendations(dataset)
-        
+
         if json_data:
             recommended_datasets = json.loads(json_data)
         else:
-            recommended_datasets = [] 
+            recommended_datasets = []
 
-        return jsonify({
-            "dataset_id": dataset_id,
-            "recommended_datasets": recommended_datasets
-        }), 200
+        return jsonify({"dataset_id": dataset_id, "recommended_datasets": recommended_datasets}), 200
 
     except Exception as exc:
         logger.error(f"Error processing recommendation data for DS {dataset_id}: {exc}")
-        return jsonify({'error': 'Internal error processing recommendation data.'}), 500
+        return jsonify({"error": "Internal error processing recommendation data."}), 500
 
-
-@dataset_bp.route('/datasets/<int:dataset_id>/recommendations', methods=['GET'])
-def get_recommendations_api(dataset_id):
-    try:
-        dataset = dataset_service.get_by_id(dataset_id) 
-    except:
-        return jsonify({'error': 'Dataset not found'}), 404
-    
-    if not dataset:
-        return jsonify({'error': 'Dataset not found'}), 404
-        
-    try:
-        json_data = dataset.recommended_datasets_json
-        
-        if json_data:
-            recommended_datasets = json.loads(json_data)
-        else:
-            recommended_datasets = [] 
-
-        return jsonify({
-            "dataset_id": dataset_id,
-            "recommended_datasets": recommended_datasets
-        }), 200
-
-    except Exception as exc:
-        logger.error(f"Error processing recommendation data for DS {dataset_id}: {exc}")
-        return jsonify({'error': 'Internal error processing recommendation data.'}), 500
 
 @dataset_bp.route("/datasets/<int:dataset_id>/comments", methods=["POST"])
-@login_required  
+@login_required
 def add_comment(dataset_id):
     content = request.form.get("content")
-    if not content or content.strip() == '':
+    if not content or content.strip() == "":
         abort(400, description="El contenido del comentario no puede estar vacío.")
     parent_id = request.form.get("parent_id") or None
-    auth_service=AuthenticationService()
-    user=auth_service.get_authenticated_user()
-    dataset=dataset_service.get_or_404(dataset_id)
-    comment_service.create(
-        content=content,
-        dataset_id=dataset_id,
-        parent_id=parent_id,
-        user_id=user.id)
-    return redirect(f'/doi/{dataset.ds_meta_data.dataset_doi}')
+    auth_service = AuthenticationService()
+    user = auth_service.get_authenticated_user()
+    dataset = dataset_service.get_or_404(dataset_id)
+    comment_service.create(content=content, dataset_id=dataset_id, parent_id=parent_id, user_id=user.id)
+    return redirect(f"/doi/{dataset.ds_meta_data.dataset_doi}")
+
 
 @dataset_bp.route("/datasets/<int:dataset_id>/comments/fragment", methods=["GET"])
 def comments_fragment(dataset_id):
     """Devuelve el HTML de los comentarios (sin reply) para el modal"""
-    dataset = dataset_service.get_or_404(dataset_id)
     comments = Comment.query.filter_by(dataset_id=dataset_id, parent_id=None).all()
     return render_template("dataset/comments_list.html", comments=comments)
 

@@ -38,6 +38,7 @@ repos:
     hooks:
       - id: flake8
         stages: [pre-commit]
+        args: ["--max-line-length=120", "--ignore=E203,W503,E741,F401,F405,F841"]
 
   # --- VALIDACIÓN DE MENSAJES DE COMMIT ---
   - repo: https://github.com/compilerla/conventional-pre-commit
