@@ -83,4 +83,3 @@ def confirm_upload():
     dataset = service.save_confirmed_upload(preview_data, current_user.id)
 
     return render_template("uploader/upload_result.html", dataset=dataset)
-
