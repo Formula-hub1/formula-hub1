@@ -29,7 +29,7 @@ body:
   - type: dropdown
     id: version
     attributes:
-      label: Versión de UVLHub
+      label: Versión de FormulaHub
       description: ¿En qué versión del proyecto encontraste el problema?
       options:
         - "v1.0.0 (Latest)"
