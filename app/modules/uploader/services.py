@@ -1,17 +1,19 @@
-import io
 import base64
-import zipfile
-import os
-import requests
 import hashlib
+import io
+import os
 import shutil
+import zipfile
+from pathlib import Path
+
+import requests
+from flask_login import current_user
+
+from app import db
 from app.modules.dataset.models import DataSet, DSMetaData, PublicationType
 from app.modules.featuremodel.models import FeatureModel, FMMetaData
 from app.modules.hubfile.models import Hubfile
-from app import db
 from core.services.BaseService import BaseService
-from pathlib import Path
-from flask_login import current_user
 
 
 def calculate_checksum_and_size_bytes(content_bytes):
@@ -47,12 +49,14 @@ class UploaderService(BaseService):
         for name in zf.namelist():
             if name.endswith(".uvl"):
                 content = zf.read(name)
-                files.append({
-                    "uvl_filename": name,
-                    "content_b64": base64.b64encode(content).decode("utf-8"),
-                    "title": name,
-                    "description": ""
-                })
+                files.append(
+                    {
+                        "uvl_filename": name,
+                        "content_b64": base64.b64encode(content).decode("utf-8"),
+                        "title": name,
+                        "description": "",
+                    }
+                )
 
         if not files:
             raise ValueError("No se encontraron archivos .uvl en el ZIP")
@@ -72,7 +76,7 @@ class UploaderService(BaseService):
             title=data["title"],
             description=data["description"],
             publication_type=data["publication_type"],
-            tags=data["tags"]
+            tags=data["tags"],
         )
         db.session.add(ds_meta)
         db.session.commit()
@@ -97,13 +101,12 @@ class UploaderService(BaseService):
                 uvl_filename=f["uvl_filename"],
                 title=f["title"],
                 description=f["description"],
-                publication_type=data["publication_type"]
+                publication_type=data["publication_type"],
             )
             db.session.add(fm_meta)
             db.session.commit()
 
-            fm = FeatureModel(data_set_id=dataset.id,
-                              fm_meta_data_id=fm_meta.id)
+            fm = FeatureModel(data_set_id=dataset.id, fm_meta_data_id=fm_meta.id)
             db.session.add(fm)
             db.session.commit()
 

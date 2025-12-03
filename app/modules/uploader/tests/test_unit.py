@@ -1,17 +1,16 @@
-import io
 import base64
+import io
 import zipfile
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 from flask import Flask
-from app.modules.uploader.services import (
-    UploaderService,
-    calculate_checksum_and_size_bytes
-)
-from app.modules.uploader.repositories import UploaderRepository
+
+from app.modules.dataset.models import PublicationType
 from app.modules.uploader.forms import UploaderForm
 from app.modules.uploader.models import Uploader
-from app.modules.dataset.models import PublicationType
+from app.modules.uploader.repositories import UploaderRepository
+from app.modules.uploader.services import UploaderService, calculate_checksum_and_size_bytes
 
 
 class TestCalculateChecksumAndSize:
@@ -39,7 +38,7 @@ class TestUploaderService:
     @pytest.fixture
     def service(self, tmp_path):
         """Fixture que crea un servicio con directorio temporal."""
-        with patch('app.modules.uploader.services.Path') as mock_path:
+        with patch("app.modules.uploader.services.Path") as mock_path:
             mock_path_instance = mock_path.return_value.resolve.return_value
             mock_path_instance.parent.parent.parent.parent = tmp_path
             service = UploaderService()
@@ -51,7 +50,7 @@ class TestUploaderService:
     def sample_zip(self):
         """Fixture que crea un ZIP con archivos .uvl de ejemplo."""
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w') as zf:
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
             zf.writestr("model1.uvl", "features\n  Feature1")
             zf.writestr("subdir/model2.uvl", "features\n  Feature2")
         return zip_buffer.getvalue()
@@ -70,7 +69,7 @@ class TestUploaderService:
     def test_prepare_zip_preview_no_uvl_files(self, service):
         """Test con ZIP sin archivos .uvl."""
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w') as zf:
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
             zf.writestr("readme.txt", "some text")
 
         with pytest.raises(ValueError, match="No se encontraron archivos"):
@@ -87,10 +86,8 @@ class TestUploaderService:
         assert result["title"] == "test.zip"
         assert len(result["files"]) == 2
 
-    @patch('app.modules.uploader.services.requests.get')
-    def test_prepare_preview_with_github_url(
-        self, mock_get, service, sample_zip
-    ):
+    @patch("app.modules.uploader.services.requests.get")
+    def test_prepare_preview_with_github_url(self, mock_get, service, sample_zip):
         """Test prepare_preview con URL de GitHub."""
         mock_response = Mock()
         mock_response.status_code = 200
@@ -104,7 +101,7 @@ class TestUploaderService:
         assert len(result["files"]) == 2
         mock_get.assert_called_once()
 
-    @patch('app.modules.uploader.services.requests.get')
+    @patch("app.modules.uploader.services.requests.get")
     def test_prepare_preview_github_url_fails(self, mock_get, service):
         """Test con URL de GitHub que falla."""
         mock_response = Mock()
@@ -120,20 +117,30 @@ class TestUploaderService:
         with pytest.raises(ValueError, match="No ZIP o GitHub URL"):
             service.prepare_preview(None, None)
 
-    @patch('builtins.open', create=True)
-    @patch('app.modules.uploader.services.Hubfile')
-    @patch('app.modules.uploader.services.FeatureModel')
-    @patch('app.modules.uploader.services.FMMetaData')
-    @patch('app.modules.uploader.services.DataSet')
-    @patch('app.modules.uploader.services.DSMetaData')
-    @patch('app.modules.uploader.services.shutil.rmtree')
-    @patch('app.modules.uploader.services.os.path.exists')
-    @patch('app.modules.uploader.services.os.makedirs')
-    @patch('app.modules.uploader.services.db.session')
+    @patch("builtins.open", create=True)
+    @patch("app.modules.uploader.services.Hubfile")
+    @patch("app.modules.uploader.services.FeatureModel")
+    @patch("app.modules.uploader.services.FMMetaData")
+    @patch("app.modules.uploader.services.DataSet")
+    @patch("app.modules.uploader.services.DSMetaData")
+    @patch("app.modules.uploader.services.shutil.rmtree")
+    @patch("app.modules.uploader.services.os.path.exists")
+    @patch("app.modules.uploader.services.os.makedirs")
+    @patch("app.modules.uploader.services.db.session")
     def test_save_confirmed_upload(
-        self, mock_session, mock_makedirs, mock_exists, mock_rmtree,
-        mock_ds_meta_class, mock_dataset_class, mock_fm_meta_class,
-        mock_fm_class, mock_hubfile_class, mock_open, service, tmp_path
+        self,
+        mock_session,
+        mock_makedirs,
+        mock_exists,
+        mock_rmtree,
+        mock_ds_meta_class,
+        mock_dataset_class,
+        mock_fm_meta_class,
+        mock_fm_class,
+        mock_hubfile_class,
+        mock_open,
+        service,
+        tmp_path,
     ):
         """Test guardado de upload confirmado."""
         # Setup
@@ -160,7 +167,7 @@ class TestUploaderService:
         mock_exists.return_value = True
 
         # Mock current_user con PropertyMock para temp_folder
-        with patch('app.modules.uploader.services.current_user') as mock_user:
+        with patch("app.modules.uploader.services.current_user") as mock_user:
             mock_user.temp_folder = Mock(return_value=temp_folder_path)
 
             content_b64 = base64.b64encode(b"test content").decode("utf-8")
@@ -169,12 +176,14 @@ class TestUploaderService:
                 "description": "Test description",
                 "publication_type": PublicationType.OTHER,
                 "tags": "test,tags",
-                "files": [{
-                    "uvl_filename": "test.uvl",
-                    "content_b64": content_b64,
-                    "title": "Test File",
-                    "description": "Test file description"
-                }]
+                "files": [
+                    {
+                        "uvl_filename": "test.uvl",
+                        "content_b64": content_b64,
+                        "title": "Test File",
+                        "description": "Test file description",
+                    }
+                ],
             }
 
             result = service.save_confirmed_upload(data, user_id=1)
@@ -199,14 +208,14 @@ class TestUploaderForm:
     def test_form_has_required_fields(self):
         """Test que el formulario tiene los campos requeridos."""
         app = Flask(__name__)
-        app.config['WTF_CSRF_ENABLED'] = False
-        app.config['SECRET_KEY'] = 'test-secret-key'
+        app.config["WTF_CSRF_ENABLED"] = False
+        app.config["SECRET_KEY"] = "test-secret-key"
 
         with app.app_context():
             form = UploaderForm()
-            assert hasattr(form, 'file')
-            assert hasattr(form, 'url')
-            assert hasattr(form, 'submit')
+            assert hasattr(form, "file")
+            assert hasattr(form, "url")
+            assert hasattr(form, "submit")
 
 
 class TestUploaderModel:
@@ -217,4 +226,4 @@ class TestUploaderModel:
         uploader = Uploader()
         uploader.id = 123
 
-        assert repr(uploader) == 'Uploader<123>'
+        assert repr(uploader) == "Uploader<123>"
