@@ -1,6 +1,8 @@
 import io
 import zipfile
+
 from locust import HttpUser, TaskSet, task
+
 from core.environment.host import get_host_for_locust_testing
 
 
@@ -14,10 +16,7 @@ class UploaderBehavior(TaskSet):
 
     def login(self):
         """Realiza login de usuario."""
-        response = self.client.post("/login", data={
-            "email": "user1@example.com",
-            "password": "1234"
-        })
+        response = self.client.post("/login", data={"email": "user1@example.com", "password": "1234"})
 
         if response.status_code != 200:
             print(f"Login failed: {response.status_code}")
@@ -25,7 +24,7 @@ class UploaderBehavior(TaskSet):
     def create_sample_zip(self, num_files=2):
         """Crea un ZIP de ejemplo con archivos .uvl."""
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w') as zf:
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
             for i in range(num_files):
                 uvl_content = f"""features
     Feature{i}
@@ -53,8 +52,7 @@ constraints
         zip_file = self.create_sample_zip(num_files=2)
 
         response = self.client.post(
-            "/uploader/preview",
-            files={"file": ("test_small.zip", zip_file, "application/zip")}
+            "/uploader/preview", files={"file": ("test_small.zip", zip_file, "application/zip")}
         )
 
         if response.status_code != 200:
@@ -66,8 +64,7 @@ constraints
         zip_file = self.create_sample_zip(num_files=5)
 
         response = self.client.post(
-            "/uploader/preview",
-            files={"file": ("test_medium.zip", zip_file, "application/zip")}
+            "/uploader/preview", files={"file": ("test_medium.zip", zip_file, "application/zip")}
         )
 
         if response.status_code != 200:
@@ -79,8 +76,7 @@ constraints
         zip_file = self.create_sample_zip(num_files=10)
 
         response = self.client.post(
-            "/uploader/preview",
-            files={"file": ("test_large.zip", zip_file, "application/zip")}
+            "/uploader/preview", files={"file": ("test_large.zip", zip_file, "application/zip")}
         )
 
         if response.status_code != 200:
@@ -92,10 +88,7 @@ constraints
         url = "https://github.com/diverso-lab/uvlhub/archive/"
         url += "refs/heads/main.zip"
 
-        response = self.client.post(
-            "/uploader/preview",
-            data={"url": url}
-        )
+        response = self.client.post("/uploader/preview", data={"url": url})
 
         if response.status_code not in [200, 400, 500]:
             print(f"GitHub URL upload failed: {response.status_code}")
@@ -104,14 +97,11 @@ constraints
     def upload_invalid_file(self):
         """Tarea: Intentar subir archivo sin .uvl (test negativo)."""
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w') as zf:
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
             zf.writestr("readme.txt", "This is not a UVL file")
         zip_buffer.seek(0)
 
-        response = self.client.post(
-            "/uploader/preview",
-            files={"file": ("invalid.zip", zip_buffer, "application/zip")}
-        )
+        response = self.client.post("/uploader/preview", files={"file": ("invalid.zip", zip_buffer, "application/zip")})
 
         # Esperamos que falle (400 o redirección)
         if response.status_code == 200:
@@ -125,9 +115,7 @@ constraints
         zip_file = self.create_sample_zip(num_files=2)
 
         preview_response = self.client.post(
-            "/uploader/preview",
-            files={"file": ("complete_flow.zip", zip_file,
-                            "application/zip")}
+            "/uploader/preview", files={"file": ("complete_flow.zip", zip_file, "application/zip")}
         )
 
         if preview_response.status_code != 200:
@@ -138,21 +126,16 @@ constraints
         # Paso 2: Confirm
         confirm_data = {
             "dataset_title": "Load Test Dataset",
-            "dataset_description": (
-                "Dataset created during load testing with Locust"
-            ),
+            "dataset_description": ("Dataset created during load testing with Locust"),
             "dataset_publication_type": "OTHER",
             "dataset_tags": "test,loadtest,locust",
             "title_0": "Model 0",
             "description_0": "First model from load test",
             "title_1": "Model 1",
-            "description_1": "Second model from load test"
+            "description_1": "Second model from load test",
         }
 
-        confirm_response = self.client.post(
-            "/uploader/confirm",
-            data=confirm_data
-        )
+        confirm_response = self.client.post("/uploader/confirm", data=confirm_data)
 
         if confirm_response.status_code != 200:
             print(f"Confirm failed: {confirm_response.status_code}")
@@ -168,10 +151,7 @@ class BulkUploaderBehavior(TaskSet):
 
     def login(self):
         """Realiza login de usuario."""
-        response = self.client.post("/login", data={
-            "email": "test@uvlhub.io",
-            "password": "test1234"
-        })
+        response = self.client.post("/login", data={"email": "test@uvlhub.io", "password": "test1234"})
 
         if response.status_code != 200:
             print(f"Login failed: {response.status_code}")
@@ -180,7 +160,7 @@ class BulkUploaderBehavior(TaskSet):
     def bulk_upload(self):
         """Tarea: Subir archivo con muchos modelos (20 archivos)."""
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w') as zf:
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
             for i in range(20):
                 uvl_content = f"""features
     BulkFeature{i}
@@ -199,8 +179,7 @@ constraints
         zip_buffer.seek(0)
 
         response = self.client.post(
-            "/uploader/preview",
-            files={"file": ("bulk_upload.zip", zip_buffer, "application/zip")}
+            "/uploader/preview", files={"file": ("bulk_upload.zip", zip_buffer, "application/zip")}
         )
 
         if response.status_code != 200:
@@ -209,6 +188,7 @@ constraints
 
 class UploaderUser(HttpUser):
     """Usuario autenticado que realiza operaciones normales de upload."""
+
     tasks = [UploaderBehavior]
     min_wait = 5000
     max_wait = 9000
@@ -217,6 +197,7 @@ class UploaderUser(HttpUser):
 
 class BulkUploaderUser(HttpUser):
     """Usuario que realiza subidas masivas (menor frecuencia)."""
+
     tasks = [BulkUploaderBehavior]
     min_wait = 10000
     max_wait = 15000
