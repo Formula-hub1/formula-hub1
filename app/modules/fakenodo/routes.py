@@ -1,9 +1,11 @@
-from flask import render_template, jsonify, make_response
+from flask import jsonify, make_response
+
 from app.modules.fakenodo import fakenodo_bp
 
 base_url = "/fakenodo/api"
 
-@fakenodo_bp.route(base_url, methods=['GET'])
+
+@fakenodo_bp.route(base_url, methods=["GET"])
 def test_fakenodo():
     response = {
         "status": "success",
@@ -11,7 +13,8 @@ def test_fakenodo():
     }
     return jsonify(response)
 
-@fakenodo_bp.route(base_url, methods=['POST'])
+
+@fakenodo_bp.route(base_url, methods=["POST"])
 def create_fakenodo():
     response = {
         "status": "success",
@@ -19,7 +22,8 @@ def create_fakenodo():
     }
     return make_response(jsonify(response), 201)
 
-@fakenodo_bp.route(base_url + '/<depositionId>/files', methods=['POST'])
+
+@fakenodo_bp.route(base_url + "/<depositionId>/files", methods=["POST"])
 def deposition_files_fakenodo(depositionId):
     response = {
         "status": "success",
@@ -27,7 +31,8 @@ def deposition_files_fakenodo(depositionId):
     }
     return make_response(jsonify(response), 201)
 
-@fakenodo_bp.route(base_url + '/<depositionId>', methods=['DELETE'])
+
+@fakenodo_bp.route(base_url + "/<depositionId>", methods=["DELETE"])
 def delete_deposition_fakenodo(depositionId):
     response = {
         "status": "success",
@@ -35,7 +40,8 @@ def delete_deposition_fakenodo(depositionId):
     }
     return make_response(jsonify(response), 200)
 
-@fakenodo_bp.route(base_url + '/<depositionId>/actions/publish', methods=['POST'])
+
+@fakenodo_bp.route(base_url + "/<depositionId>/actions/publish", methods=["POST"])
 def publish_deposition_fakenodo(depositionId):
     response = {
         "status": "success",
@@ -43,7 +49,8 @@ def publish_deposition_fakenodo(depositionId):
     }
     return make_response(jsonify(response), 202)
 
-@fakenodo_bp.route(base_url + '/<depositionId>', methods=['GET'])
+
+@fakenodo_bp.route(base_url + "/<depositionId>", methods=["GET"])
 def get_deposition_fakenodo(depositionId):
     response = {
         "status": "success",

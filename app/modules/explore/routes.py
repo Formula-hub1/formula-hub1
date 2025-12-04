@@ -14,18 +14,19 @@ def index():
         author = request.args.get("author", "")
         description = request.args.get("description", "")
         file = request.args.get("file", "")
-        tags = request.args.get("tags", "")  
+        tags = request.args.get("tags", "")
         date = request.args.get("date", "")
 
-        return render_template("explore/index.html", 
-                               form=form, 
-                               query=query,
-                               author = author,
-                               description = description,
-                               file = file,
-                               tags =tags,
-                               date = date
-                               )
+        return render_template(
+            "explore/index.html",
+            form=form,
+            query=query,
+            author=author,
+            description=description,
+            file=file,
+            tags=tags,
+            date=date,
+        )
 
     if request.method == "POST":
         criteria = request.get_json()

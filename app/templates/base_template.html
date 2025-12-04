@@ -181,12 +181,8 @@ chico sundermann">
                             </div>
                             <div class="col-12 mt-2"></div>
                             <div class="col-12 mt-2">
-                                <label class="form-label small mb-1" for="tags">Tags</label>
-                                <select class="form-label" id="tags" name="tags" required="">
-                                    <option value="Any">Any</option>
-                                    <option value="None">None</option>
-
-                                </select>
+                                <label class="form-label small mb-1" for="filter-tags-nav">Tags</label>
+                                <input type="text" class="form-control form-control-sm" id="filter-tags-nav" name="filter-tags-nav" placeholder="tag1, tag2">
                                 <!-- <div class="input-group input-group-sm">                            
                                     <input type="text" id="selected-tags-display" class="form-control" placeholder="Select Tags"
                                         aria-label="Selected Tags" readonly>                            
@@ -380,7 +376,7 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
         const description = document.getElementById('filter-description').value;
         const file = document.getElementById('filter-file').value;
         const date = document.getElementById('filter-date').value;
-        const tags = document.getElementById('tags').value;
+        const tags = document.getElementById('filter-tags-nav').value;
 
         if (author) params.append('author', author);
         if (description) params.append('description', description);
@@ -438,7 +434,7 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
         document.getElementById('filter-date').value = '';
 
         // Limpiar el <select> de Tags volviendo a "Any"
-        document.getElementById('tags').value = 'Any';
+        document.getElementById('filter-tags-nav').value = '';
 
         if (window.location.pathname.startsWith('/explore') && typeof performSearch === 'function') {
             performSearch();

@@ -1,6 +1,6 @@
-# 🤝 Guía de Contribución para UVLHub
+# 🤝 Guía de Contribución para FormulaHub
 
-¡Gracias por tu interés en contribuir a UVLHub! Tu ayuda es muy valiosa. Para mantener la calidad y la coherencia del proyecto, por favor, sigue estas directrices de flujo de trabajo y configuración.
+¡Gracias por tu interés en contribuir a FormulaHub! Tu ayuda es muy valiosa. Para mantener la calidad y la coherencia del proyecto, por favor, sigue estas directrices de flujo de trabajo y configuración.
 
 ## 🚀 Flujo de Trabajo
 
@@ -9,7 +9,7 @@
 3.  **Configuración Local:** Sigue la sección de "Configuración Obligatoria" a continuación para configurar tus hooks.
 4.  **Desarrollo:** Implementa tus cambios.
 5.  **Commit:** Usa mensajes de commit que sigan la convención.
-6.  **Pull Request (PR):** Envía un PR a la rama `main` de UVLHub, completando la plantilla correspondiente.
+6.  **Pull Request (PR):** Envía un PR a la rama `main` de FormulaHub, completando la plantilla correspondiente.
 
 ---
 
