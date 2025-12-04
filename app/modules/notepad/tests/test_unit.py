@@ -1,10 +1,11 @@
 import pytest
+
 from app import db
 from app.modules.auth.models import User
-from app.modules.conftest import login, logout
+from app.modules.conftest import login
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def test_client(test_client):
     """
     Extends the test_client fixture to add additional specific data for module testing.
@@ -37,4 +38,4 @@ def test_list_empty_notepad_get(test_client):
     login_response = login(test_client, "user@example.com", "test1234")
     assert login_response.status_code == 200, "Login was unsuccessful."
 
-    response = test_client.get("/notepad")
+    test_client.get("/notepad")

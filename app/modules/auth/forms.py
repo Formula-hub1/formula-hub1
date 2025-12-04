@@ -17,9 +17,11 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField("Remember me")
     submit = SubmitField("Login")
 
+
 class RecoverPasswordForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
     submit = SubmitField("Recover")
+
 
 class ResetPasswordForm(FlaskForm):
     password = StringField("Password", validators=[DataRequired()])

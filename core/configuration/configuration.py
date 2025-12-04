@@ -25,6 +25,7 @@ def is_develop():
 def is_production():
     return os.getenv("FLASK_ENV") == "production"
 
+
 def config_mail(app):
     app.config["MAIL_SERVER"] = "smtp.gmail.com"
     app.config["MAIL_PORT"] = 587
@@ -32,6 +33,7 @@ def config_mail(app):
     app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
     app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
     app.config["MAIL_DEFAULT_SENDER"] = ("Formula Hub", app.config["MAIL_USERNAME"])
+
 
 def secret_key(app):
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")

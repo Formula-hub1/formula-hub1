@@ -1,15 +1,18 @@
 """
 Community services - Business logic layer
 """
-from typing import Optional, List, Dict
+
+from typing import List, Optional
+
 from flask import current_app, url_for
-from core.managers.mail_manager import mail_manager
-from app.modules.community.repositories import (
-    CommunityRepository,
-    CommunityMembershipRepository,
-    DatasetCommunitySubmissionRepository
-)
+
 from app.modules.community.models import Community, CommunityMembership, DatasetCommunitySubmission
+from app.modules.community.repositories import (
+    CommunityMembershipRepository,
+    CommunityRepository,
+    DatasetCommunitySubmissionRepository,
+)
+from core.managers.mail_manager import mail_manager
 
 
 class CommunityService:
@@ -53,7 +56,7 @@ class CommunityService:
         return self.community_repo.delete(community_id)
 
     # Member management
-    def add_member(self, community_id: int, user_id: int, role: str = 'member') -> Optional[CommunityMembership]:
+    def add_member(self, community_id: int, user_id: int, role: str = "member") -> Optional[CommunityMembership]:
         """Add a member to a community"""
         return self.membership_repo.add_member(community_id, user_id, role)
 
@@ -78,36 +81,38 @@ class CommunityService:
         return self.membership_repo.is_curator_or_owner(community_id, user_id)
 
     # Dataset submissions
-    def submit_dataset(self, dataset_id: int, community_id: int, submitter_id: int, 
-                      message: Optional[str] = None) -> Optional[DatasetCommunitySubmission]:
+    def submit_dataset(
+        self, dataset_id: int, community_id: int, submitter_id: int, message: Optional[str] = None
+    ) -> Optional[DatasetCommunitySubmission]:
         """Submit a dataset to a community"""
         submission = self.submission_repo.submit_dataset(dataset_id, community_id, submitter_id, message)
-        
+
         if submission:
             # Send notification to curators
             NotificationService.send_new_submission_notification(submission)
-        
+
         return submission
 
     def approve_submission(self, submission_id: int, reviewer_id: int) -> Optional[DatasetCommunitySubmission]:
         """Approve a dataset submission"""
         submission = self.submission_repo.approve_submission(submission_id, reviewer_id)
-        
+
         if submission:
             # Send approval notification to submitter
             NotificationService.send_approval_notification(submission)
-        
+
         return submission
 
-    def reject_submission(self, submission_id: int, reviewer_id: int, 
-                         feedback: str) -> Optional[DatasetCommunitySubmission]:
+    def reject_submission(
+        self, submission_id: int, reviewer_id: int, feedback: str
+    ) -> Optional[DatasetCommunitySubmission]:
         """Reject a dataset submission"""
         submission = self.submission_repo.reject_submission(submission_id, reviewer_id, feedback)
-        
+
         if submission:
             # Send rejection notification to submitter
             NotificationService.send_rejection_notification(submission)
-        
+
         return submission
 
     def get_pending_submissions(self, community_id: int) -> List[DatasetCommunitySubmission]:
@@ -133,46 +138,39 @@ class NotificationService:
             community = submission.community
             dataset = submission.dataset
             submitter = submission.submitter
-            
+
             # Get all curators and owners
             curators = community.get_curators() + community.get_owners()
-            
+
             if not curators:
                 current_app.logger.warning(f"No curators found for community {community.id}")
                 return
-            
+
             # Prepare email data
             subject = f"Nueva propuesta de dataset en {community.name}"
-            
+
             # Get dataset title from metadata
             dataset_title = "Sin título"
-            if hasattr(dataset, 'ds_meta_data') and dataset.ds_meta_data:
+            if hasattr(dataset, "ds_meta_data") and dataset.ds_meta_data:
                 dataset_title = dataset.ds_meta_data.title or dataset_title
-            
+
             context = {
-                'community_name': community.name,
-                'dataset_title': dataset_title,
-                'submitter_name': submitter.profile.name if hasattr(submitter, 'profile') else submitter.email,
-                'submission_message': submission.message or '',
-                'submission_url': url_for('community.review_submission', 
-                                         submission_id=submission.id, 
-                                         _external=True),
-                'community_url': url_for('community.detail', 
-                                        slug=community.slug, 
-                                        _external=True),
+                "community_name": community.name,
+                "dataset_title": dataset_title,
+                "submitter_name": submitter.profile.name if hasattr(submitter, "profile") else submitter.email,
+                "submission_message": submission.message or "",
+                "submission_url": url_for("community.review_submission", submission_id=submission.id, _external=True),
+                "community_url": url_for("community.detail", slug=community.slug, _external=True),
             }
-            
+
             # Send to all curators
             for curator in curators:
                 mail_manager.send_email(
-                    to=curator.email,
-                    subject=subject,
-                    template='emails/new_submission',
-                    context=context
+                    to=curator.email, subject=subject, template="emails/new_submission", context=context
                 )
-            
+
             current_app.logger.info(f"New submission notification sent for submission {submission.id}")
-            
+
         except Exception as e:
             current_app.logger.error(f"Error sending new submission notification: {str(e)}")
 
@@ -184,36 +182,33 @@ class NotificationService:
             dataset = submission.dataset
             submitter = submission.submitter
             reviewer = submission.reviewer
-            
+
             # Prepare email data
             subject = f"¡Dataset aceptado en {community.name}!"
-            
+
             # Get dataset title from metadata
             dataset_title = "Sin título"
-            if hasattr(dataset, 'ds_meta_data') and dataset.ds_meta_data:
+            if hasattr(dataset, "ds_meta_data") and dataset.ds_meta_data:
                 dataset_title = dataset.ds_meta_data.title or dataset_title
-            
+
             reviewer_name = "Un curador"
-            if reviewer and hasattr(reviewer, 'profile'):
+            if reviewer and hasattr(reviewer, "profile"):
                 reviewer_name = reviewer.profile.name if reviewer.profile else reviewer.email
-            
+
             context = {
-                'community_name': community.name,
-                'dataset_title': dataset_title,
-                'reviewer_name': reviewer_name,
-                'dataset_url': url_for('dataset.view', dataset_id=dataset.id, _external=True),
-                'community_url': url_for('community.detail', slug=community.slug, _external=True),
+                "community_name": community.name,
+                "dataset_title": dataset_title,
+                "reviewer_name": reviewer_name,
+                "dataset_url": url_for("dataset.view", dataset_id=dataset.id, _external=True),
+                "community_url": url_for("community.detail", slug=community.slug, _external=True),
             }
-            
+
             mail_manager.send_email(
-                to=submitter.email,
-                subject=subject,
-                template='emails/dataset_accepted',
-                context=context
+                to=submitter.email, subject=subject, template="emails/dataset_accepted", context=context
             )
-            
+
             current_app.logger.info(f"Approval notification sent for submission {submission.id}")
-            
+
         except Exception as e:
             current_app.logger.error(f"Error sending approval notification: {str(e)}")
 
@@ -225,37 +220,34 @@ class NotificationService:
             dataset = submission.dataset
             submitter = submission.submitter
             reviewer = submission.reviewer
-            
+
             # Prepare email data
             subject = f"Actualización sobre tu propuesta en {community.name}"
-            
+
             # Get dataset title from metadata
             dataset_title = "Sin título"
-            if hasattr(dataset, 'ds_meta_data') and dataset.ds_meta_data:
+            if hasattr(dataset, "ds_meta_data") and dataset.ds_meta_data:
                 dataset_title = dataset.ds_meta_data.title or dataset_title
-            
+
             reviewer_name = "Un curador"
-            if reviewer and hasattr(reviewer, 'profile'):
+            if reviewer and hasattr(reviewer, "profile"):
                 reviewer_name = reviewer.profile.name if reviewer.profile else reviewer.email
-            
+
             context = {
-                'community_name': community.name,
-                'dataset_title': dataset_title,
-                'reviewer_name': reviewer_name,
-                'feedback': submission.feedback or 'No se proporcionó feedback adicional.',
-                'dataset_url': url_for('dataset.view', dataset_id=dataset.id, _external=True),
-                'community_url': url_for('community.detail', slug=community.slug, _external=True),
+                "community_name": community.name,
+                "dataset_title": dataset_title,
+                "reviewer_name": reviewer_name,
+                "feedback": submission.feedback or "No se proporcionó feedback adicional.",
+                "dataset_url": url_for("dataset.view", dataset_id=dataset.id, _external=True),
+                "community_url": url_for("community.detail", slug=community.slug, _external=True),
             }
-            
+
             mail_manager.send_email(
-                to=submitter.email,
-                subject=subject,
-                template='emails/dataset_rejected',
-                context=context
+                to=submitter.email, subject=subject, template="emails/dataset_rejected", context=context
             )
-            
+
             current_app.logger.info(f"Rejection notification sent for submission {submission.id}")
-            
+
         except Exception as e:
             current_app.logger.error(f"Error sending rejection notification: {str(e)}")
 

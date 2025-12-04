@@ -4,11 +4,9 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from flask_mail import Mail
 
 from app.extensions import mail
-
-from core.configuration.configuration import get_app_version, config_mail
+from core.configuration.configuration import config_mail, get_app_version
 from core.managers.config_manager import ConfigManager
 from core.managers.error_handler_manager import ErrorHandlerManager
 from core.managers.logging_manager import LoggingManager
@@ -20,6 +18,7 @@ load_dotenv()
 # Create the instances
 db = SQLAlchemy()
 migrate = Migrate()
+
 
 def create_app(config_name="development"):
     app = Flask(__name__)
@@ -36,13 +35,14 @@ def create_app(config_name="development"):
     # ✅ AÑADIDO: Initialize Mail Manager for email notifications
     # ============================================================================
     from core.managers.mail_manager import mail_manager
+
     mail_manager.init_app(app)
 
     # Register modules
     module_manager = ModuleManager(app)
     module_manager.register_modules()
 
-    #Mail configuration
+    # Mail configuration
     config_mail(app)
     mail.init_app(app)
 

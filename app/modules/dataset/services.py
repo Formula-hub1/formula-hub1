@@ -1,10 +1,11 @@
 import hashlib
+import json
 import logging
 import os
 import shutil
 import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Optional
-from datetime import datetime, timezone, timedelta
 
 from flask import request
 
@@ -12,12 +13,12 @@ from app.modules.auth.services import AuthenticationService
 from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord
 from app.modules.dataset.repositories import (
     AuthorRepository,
+    CommentRepository,
     DataSetRepository,
     DOIMappingRepository,
     DSDownloadRecordRepository,
     DSMetaDataRepository,
     DSViewRecordRepository,
-    CommentRepository
 )
 from app.modules.featuremodel.repositories import FeatureModelRepository, FMMetaDataRepository
 from app.modules.hubfile.repositories import (
@@ -26,14 +27,13 @@ from app.modules.hubfile.repositories import (
     HubfileViewRecordRepository,
 )
 from core.services.BaseService import BaseService
-
-import json
 from core.services.DatasetRecommenderService import DatasetRecommenderService
 
 logger = logging.getLogger(__name__)
 
 EXPIRATION_TIME = timedelta(hours=1)
 ANCIENT_DATE = datetime(2000, 1, 1, tzinfo=timezone.utc)
+
 
 def calculate_checksum_and_size(file_path):
     file_size = os.path.getsize(file_path)
@@ -56,37 +56,35 @@ class DataSetService(BaseService):
         self.dsviewrecord_repository = DSViewRecordRepository()
         self.hubfileviewrecord_repository = HubfileViewRecordRepository()
         self.dataset_recommender_service = DatasetRecommenderService(
-            dataset_repository=self.repository,
-            ds_download_repository=self.dsdownloadrecord_repository)
+            dataset_repository=self.repository, ds_download_repository=self.dsdownloadrecord_repository
+        )
 
     def save_dataset_recommendations(self, dataset: DataSet):
         """Calcula las recomendaciones y las guarda en el objeto DataSet."""
-        
+
         recommended_datasets = self.dataset_recommender_service.get_recommendations(dataset)
-        
+
         dataset.recommended_datasets_json = json.dumps(recommended_datasets)
 
-        dataset.recalculated_at = datetime.now(timezone.utc) 
-        
+        dataset.recalculated_at = datetime.now(timezone.utc)
+
         self.repository.session.commit()
         return recommended_datasets
-    
+
     def get_or_recalculate_recommendations(self, dataset: DataSet):
-    
+
         if dataset.recalculated_at:
             last_calculated = dataset.recalculated_at.replace(tzinfo=timezone.utc)
         else:
             last_calculated = ANCIENT_DATE
 
         # 1. Comprobar si la recomendación está obsoleta
-        is_obsolete = (
-            (datetime.now(timezone.utc) - last_calculated) > EXPIRATION_TIME
-        )
-        
+        is_obsolete = (datetime.now(timezone.utc) - last_calculated) > EXPIRATION_TIME
+
         if is_obsolete:
             # 2. Si está obsoleta (o es la primera vez), forzamos el recálculo
             self.save_dataset_recommendations(dataset)
-            
+
             # El campo JSON ahora estará actualizado
             return dataset.recommended_datasets_json
         else:
@@ -245,9 +243,11 @@ class DOIMappingService(BaseService):
         else:
             return None
 
+
 class CommentService(BaseService):
     def __init__(self):
         super().__init__(CommentRepository())
+
 
 class SizeService:
 
