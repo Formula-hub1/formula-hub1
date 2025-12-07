@@ -1,0 +1,7 @@
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
+Gran Premio de Canadá,2023,2023-06-18,Circuit Gilles Villeneuve,Max Verstappen,Red Bull Racing,Honda RBPT,1,25.0,"1:33:58.347",70,Terminado
+Gran Premio de Canadá,2023,2023-06-18,Circuit Gilles Villeneuve,Lewis Hamilton,Mercedes,Mercedes,3,15.0,"1:34:04.247",70,Terminado
+Gran Premio de Canadá,2023,2023-06-18,Circuit Gilles Villeneuve,Esteban Ocon,Alpine,Renault,8,4.0,"1:34:40.100",70,Terminado
+Gran Premio de Canadá,2023,2023-06-18,Circuit Gilles Villeneuve,Valtteri Bottas,Alfa Romeo,Ferrari,18,0.0,"1:35:10.500",69,Terminado
+Gran Premio de Canadá,2023,2023-06-18,Circuit Gilles Villeneuve,Lando Norris,McLaren,Mercedes,13,0.0,"1:34:50.000",70,"Terminado - Penalización de 5s"
+Gran Premio de Canadá,2023,2023-06-18,Circuit Gilles Villeneuve,Nyck de Vries,AlphaTauri,Honda RBPT,DNF,0.0,"NULL",12,"Abandono - Problema en la Caja de Cambios"

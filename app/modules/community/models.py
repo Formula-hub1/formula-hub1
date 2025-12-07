@@ -91,7 +91,7 @@ class DatasetCommunitySubmission(db.Model):
     __tablename__ = "dataset_community_submission"
 
     id = db.Column(db.Integer, primary_key=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey("data_set.id"), nullable=False)
+    dataset_id = db.Column(db.Integer, db.ForeignKey("dataset.id"), nullable=False)
     community_id = db.Column(db.Integer, db.ForeignKey("community.id"), nullable=False)
     status = db.Column(SQLAlchemyEnum(SubmissionStatus), default=SubmissionStatus.PENDING)
     submitted_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)

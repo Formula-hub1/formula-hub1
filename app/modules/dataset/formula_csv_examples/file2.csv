@@ -1,0 +1,7 @@
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
+Gran Premio de Mónaco,2024,2024-05-26,Circuit de Monaco,Charles Leclerc,Ferrari,Ferrari,1,25.0,"1:49:27.755",78,Terminado
+Gran Premio de Mónaco,2024,2024-05-26,Circuit de Monaco,Oscar Piastri,McLaren,Mercedes,2,18.0,"1:49:28.455",78,Terminado
+Gran Premio de Mónaco,2024,2024-05-26,Circuit de Monaco,Max Verstappen,Red Bull Racing,Honda RBPT,6,8.0,"1:49:38.200",78,Terminado
+Gran Premio de Mónaco,2024,2024-05-26,Circuit de Monaco,Daniel Ricciardo,RB,Honda RBPT,12,0.0,"1:49:50.111",77,Terminado
+Gran Premio de Mónaco,2024,2024-05-26,Circuit de Monaco,Sergio Pérez,Red Bull Racing,Honda RBPT,DNF,0.0,"NULL",0,"Abandono - Accidente en la primera vuelta"
+Gran Premio de Mónaco,2024,2024-05-26,Circuit de Monaco,Fernando Alonso,Aston Martin,Mercedes,11,0.0,"1:49:45.302",78,Terminado

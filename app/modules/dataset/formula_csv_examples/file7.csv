@@ -1,0 +1,7 @@
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
+Gran Premio de Las Vegas,2024,2024-11-23,Las Vegas Strip Circuit,Lando Norris,McLaren,Mercedes,1,25.0,"1:28:47.330",50,Terminado
+Gran Premio de Las Vegas,2024,2024-11-23,Las Vegas Strip Circuit,Lewis Hamilton,Mercedes,Mercedes,2,18.0,"1:28:54.100",50,Terminado
+Gran Premio de Las Vegas,2024,2024-11-23,Las Vegas Strip Circuit,Max Verstappen,Red Bull Racing,Honda RBPT,5,10.0,"1:29:05.500",50,Terminado
+Gran Premio de Las Vegas,2024,2024-11-23,Las Vegas Strip Circuit,Lance Stroll,Aston Martin,Mercedes,6,8.0,"1:29:07.100",50,Terminado
+Gran Premio de Las Vegas,2024,2024-11-23,Las Vegas Strip Circuit,Daniel Ricciardo,RB,Honda RBPT,18,0.0,"NULL",45,"CLAS - Daño en la Suspensión"
+Gran Premio de Las Vegas,2024,2024-11-23,Las Vegas Strip Circuit,Guanyu Zhou,Kick Sauber,Ferrari,DNF,0.0,"NULL",28,"Abandono - Accidente"

@@ -103,7 +103,23 @@ class DatasetRecommenderService:
                 else f"Suggested Dataset #{candidate_ds.id}"
             )
 
-            recommendations.append({"ds_id": candidate_ds.id, "score": score, "title": candidate_title})
+            # 1. Recuperamos el DOI real de la base de datos
+            candidate_doi = candidate_ds.ds_meta_data.dataset_doi if candidate_ds.ds_meta_data else ""
+
+            # 2. Lo guardamos en la lista temporal
+            recommendations.append(
+                {"ds_id": candidate_ds.id, "score": score, "title": candidate_title, "doi": candidate_doi}
+            )
 
         recommendations.sort(key=lambda x: x["score"], reverse=True)
-        return [{"id": rec["ds_id"], "title": rec["title"]} for rec in recommendations[: self.k]]
+
+        # 3. AQUÍ ESTÁ LA MAGIA: Construimos el campo 'url' antes de enviarlo
+        return [
+            {
+                "id": rec["ds_id"],
+                "title": rec["title"],
+                # Generamos la URL limpia sin barra final
+                "url": f"/doi/{rec['doi']}",
+            }
+            for rec in recommendations[: self.k]
+        ]

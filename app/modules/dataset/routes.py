@@ -12,7 +12,7 @@ from flask_login import current_user, login_required
 
 from app.modules.auth.services import AuthenticationService
 from app.modules.dataset import dataset_bp
-from app.modules.dataset.forms import DataSetForm
+from app.modules.dataset.forms import FormulaDataSetForm, UVLDataSetForm
 from app.modules.dataset.models import Comment, DSDownloadRecord
 from app.modules.dataset.services import (
     AuthorService,
@@ -41,69 +41,84 @@ ds_view_record_service = DSViewRecordService()
 @dataset_bp.route("/dataset/upload", methods=["GET", "POST"])
 @login_required
 def create_dataset():
-    form = DataSetForm()
+    # 2. LÓGICA PARA GESTIONAR AMBOS FORMULARIOS
+    uvl_form = UVLDataSetForm()
+    formula_form = FormulaDataSetForm()
+
     if request.method == "POST":
-
         dataset = None
+        form_to_process = None
 
-        if not form.validate_on_submit():
-            return jsonify({"message": form.errors}), 400
+        # Determinar cuál formulario se ha enviado validándolos
+        if uvl_form.validate_on_submit():
+            form_to_process = uvl_form
+        elif formula_form.validate_on_submit():
+            form_to_process = formula_form
 
-        try:
-            logger.info("Creating dataset...")
-            dataset = dataset_service.create_from_form(form=form, current_user=current_user)
-            logger.info(f"Created dataset: {dataset}")
-            dataset_service.move_feature_models(dataset)
-        except Exception as exc:
-            logger.exception(f"Exception while create dataset data in local {exc}")
-            return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
-
-        try:
-            dataset_service.save_dataset_recommendations(dataset)
-            logger.info(f"Recommendations calculated and saved locally for dataset: {dataset.id}")
-        except Exception as e:
-            logger.exception(f"Exception while calculating recommendations locally: {e}")
-
-        data = {}
-        try:
-            zenodo_response_json = zenodo_service.create_new_deposition(dataset)
-            response_data = json.dumps(zenodo_response_json)
-            data = json.loads(response_data)
-        except Exception as exc:
-            data = {}
-            zenodo_response_json = {}
-            logger.exception(f"Exception while create dataset data in Zenodo Failed to create deposition... {exc}")
-
-        if data.get("conceptrecid"):
-            deposition_id = data.get("id")
-
-            # update dataset with deposition id in Zenodo
-            dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
-
+        if form_to_process:
             try:
-                # iterate for each feature model (one feature model = one request to Zenodo)
-                for feature_model in dataset.feature_models:
-                    zenodo_service.upload_file(dataset, deposition_id, feature_model)
+                logger.info(f"Creating dataset using {type(form_to_process).__name__}...")
 
-                # publish deposition
-                zenodo_service.publish_deposition(deposition_id)
+                # El servicio ya sabe cómo manejar cada tipo (modificamos services.py antes)
+                dataset = dataset_service.create_from_form(form=form_to_process, current_user=current_user)
+                logger.info(f"Created dataset: {dataset}")
 
-                # update DOI
-                deposition_doi = zenodo_service.get_doi(deposition_id)
-                dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
-            except Exception as e:
-                msg = f"it has not been possible upload feature models in Zenodo and update the DOI: {e}"
+                # Mover archivos solo si es UVL (Formula CSV ya se procesó en memoria)
+                if isinstance(form_to_process, UVLDataSetForm):
+                    dataset_service.move_feature_models(dataset)
+
+                # --- CÁLCULO DE RECOMENDACIONES ---
+                try:
+                    dataset_service.save_dataset_recommendations(dataset)
+                except Exception as e:
+                    logger.exception(f"Exception while calculating recommendations locally: {e}")
+
+                # --- ZENODO ---
+                data = {}
+                try:
+                    zenodo_response_json = zenodo_service.create_new_deposition(dataset)
+                    response_data = json.dumps(zenodo_response_json)
+                    data = json.loads(response_data)
+                except Exception as exc:
+                    data = {}
+                    logger.exception(f"Exception while create dataset data in Zenodo: {exc}")
+
+                if data.get("conceptrecid"):
+                    deposition_id = data.get("id")
+                    dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
+
+                    try:
+                        # Subir archivos a Zenodo (Solo UVL por ahora)
+                        if isinstance(form_to_process, UVLDataSetForm):
+                            for feature_model in dataset.feature_models:
+                                zenodo_service.upload_file(dataset, deposition_id, feature_model)
+
+                        zenodo_service.publish_deposition(deposition_id)
+                        deposition_doi = zenodo_service.get_doi(deposition_id)
+                        dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
+                    except Exception as e:
+                        msg = f"Zenodo upload error: {e}"
+                        return jsonify({"message": msg}), 200
+
+                # Borrar temporales
+                file_path = current_user.temp_folder()
+                if os.path.exists(file_path) and os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+
+                msg = "Everything works!"
                 return jsonify({"message": msg}), 200
 
-        # Delete temp folder
-        file_path = current_user.temp_folder()
-        if os.path.exists(file_path) and os.path.isdir(file_path):
-            shutil.rmtree(file_path)
+            except Exception as exc:
+                logger.exception(f"Exception while create dataset data in local {exc}")
+                return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
 
-        msg = "Everything works!"
-        return jsonify({"message": msg}), 200
+        else:
+            # Si ninguno validó, devolver errores combinados
+            errors = uvl_form.errors if uvl_form.errors else formula_form.errors
+            return jsonify({"message": errors}), 400
 
-    return render_template("dataset/upload_dataset.html", form=form)
+    # Pasar ambos formularios al template
+    return render_template("dataset/upload_dataset.html", form=uvl_form, formula_form=formula_form)
 
 
 @dataset_bp.route("/dataset/list", methods=["GET", "POST"])
@@ -122,8 +137,8 @@ def upload():
     file = request.files["file"]
     temp_folder = current_user.temp_folder()
 
-    if not file or not file.filename.endswith(".uvl"):
-        return jsonify({"message": "No valid file"}), 400
+    if not file or not (file.filename.endswith(".uvl") or file.filename.endswith(".csv")):
+        return jsonify({"message": "No valid file. Only .uvl or .csv allowed"}), 400
 
     # create temp folder
     if not os.path.exists(temp_folder):
@@ -233,9 +248,10 @@ def download_dataset(dataset_id):
     return resp
 
 
-@dataset_bp.route("/doi/<path:doi>/", methods=["GET"])
+@dataset_bp.route("/doi/<path:doi>/", methods=["GET"], strict_slashes=False)
+@dataset_bp.route("/doi/<path:doi>", methods=["GET"], strict_slashes=False)
 def subdomain_index(doi):
-
+    print(f"El DOI recibido es: '{doi}'")
     # Check if the DOI is an old DOI
     new_doi = doi_mapping_service.get_new_doi(doi)
     if new_doi:
@@ -249,7 +265,10 @@ def subdomain_index(doi):
         abort(404)
 
     # Get dataset
-    dataset = ds_meta_data.data_set
+    dataset = ds_meta_data.dataset
+
+    if dataset is None:
+        abort(404)
 
     # Save the cookie to the user's browser
     user_cookie = ds_view_record_service.create_cookie(dataset=dataset)

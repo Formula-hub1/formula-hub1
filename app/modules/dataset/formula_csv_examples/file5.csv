@@ -1,0 +1,7 @@
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
+Gran Premio de Bahréin,2024,2024-03-02,Bahrain International Circuit,Max Verstappen,Red Bull Racing,Honda RBPT,1,26.0,"1:31:44.742",57,Terminado
+Gran Premio de Bahréin,2024,2024-03-02,Bahrain International Circuit,Sergio Pérez,Red Bull Racing,Honda RBPT,2,18.0,"1:31:56.542",57,Terminado
+Gran Premio de Bahréin,2024,2024-03-02,Bahrain International Circuit,Carlos Sainz,Ferrari,Ferrari,3,15.0,"1:31:58.742",57,Terminado
+Gran Premio de Bahréin,2024,2024-03-02,Bahrain International Circuit,Lance Stroll,Aston Martin,Mercedes,10,1.0,"1:32:41.500",57,Terminado
+Gran Premio de Bahréin,2024,2024-03-02,Bahrain International Circuit,Logan Sargeant,Williams,Mercedes,20,0.0,"1:33:45.100",56,Terminado
+Gran Premio de Bahréin,2024,2024-03-02,Bahrain International Circuit,Esteban Ocon,Alpine,Renault,DNF,0.0,"NULL",17,"Abandono - Problema de Refrigeración"

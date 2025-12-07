@@ -1,44 +1,11 @@
 from datetime import datetime
-from enum import Enum
 
 from flask import request
 from sqlalchemy import Enum as SQLAlchemyEnum
 
 from app import db
-
-
-class PublicationType(Enum):
-    NONE = "none"
-    ANNOTATION_COLLECTION = "annotationcollection"
-    BOOK = "book"
-    BOOK_SECTION = "section"
-    CONFERENCE_PAPER = "conferencepaper"
-    DATA_MANAGEMENT_PLAN = "datamanagementplan"
-    JOURNAL_ARTICLE = "article"
-    PATENT = "patent"
-    PREPRINT = "preprint"
-    PROJECT_DELIVERABLE = "deliverable"
-    PROJECT_MILESTONE = "milestone"
-    PROPOSAL = "proposal"
-    REPORT = "report"
-    SOFTWARE_DOCUMENTATION = "softwaredocumentation"
-    TAXONOMIC_TREATMENT = "taxonomictreatment"
-    TECHNICAL_NOTE = "technicalnote"
-    THESIS = "thesis"
-    WORKING_PAPER = "workingpaper"
-    OTHER = "other"
-
-
-class Author(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    affiliation = db.Column(db.String(120))
-    orcid = db.Column(db.String(120))
-    ds_meta_data_id = db.Column(db.Integer, db.ForeignKey("ds_meta_data.id"))
-    fm_meta_data_id = db.Column(db.Integer, db.ForeignKey("fm_meta_data.id"))
-
-    def to_dict(self):
-        return {"name": self.name, "affiliation": self.affiliation, "orcid": self.orcid}
+from app.modules.dataset.models_base import Author, PublicationType
+from app.modules.featuremodel.models import FeatureModel
 
 
 class DSMetrics(db.Model):
@@ -69,7 +36,7 @@ class Comment(db.Model):
     content = db.Column(db.String(50), nullable=False)
 
     parent_id = db.Column(db.Integer, db.ForeignKey("comment.id", ondelete="CASCADE"), nullable=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey("data_set.id"), nullable=False)
+    dataset_id = db.Column(db.Integer, db.ForeignKey("dataset.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     user = db.relationship("User")
 
@@ -83,47 +50,51 @@ class Comment(db.Model):
 
 
 class DataSet(db.Model):
+    __tablename__ = "dataset"
     id = db.Column(db.Integer, primary_key=True)
+    dataset_type = db.Column(db.String(50), nullable=False)  # Clave Polimórfica
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-
-    ds_meta_data_id = db.Column(db.Integer, db.ForeignKey("ds_meta_data.id"), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     recalculated_at = db.Column(db.DateTime, nullable=True)
-
-    ds_meta_data = db.relationship("DSMetaData", backref=db.backref("data_set", uselist=False))
-    feature_models = db.relationship("FeatureModel", backref="data_set", lazy=True, cascade="all, delete")
-
-    # Nueva columna para almacenar datasets recomendados en formato JSON
     recommended_datasets_json = db.Column(db.Text, nullable=True, default="[]")
 
+    ds_meta_data_id = db.Column(db.Integer, db.ForeignKey("ds_meta_data.id"), nullable=False)
+    ds_meta_data = db.relationship("DSMetaData", backref=db.backref("dataset", uselist=False, lazy="joined"))
+    feature_models = db.relationship("FeatureModel", backref="dataset", lazy=True, cascade="all, delete")
+
     comments = db.relationship("Comment", backref="dataset", cascade="all, delete-orphan", lazy=True)
+
+    __mapper_args__ = {
+        "polymorphic_on": dataset_type,
+        "polymorphic_identity": "base",
+    }
 
     def name(self):
         return self.ds_meta_data.title
 
-    def files(self):
-        return [file for fm in self.feature_models for file in fm.files]
-
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+    def get_files_count(self):
+        """Método base: Por defecto 0 si no se sobrescribe."""
+        return 0
+
+    def get_file_total_size(self):
+        """Método base: Por defecto 0 bytes."""
+        return 0
+
+    def get_file_total_size_for_human(self):
+        """Método base que usa el servicio de tamaño."""
+        from app.modules.dataset.services import SizeService
+
+        return SizeService().get_human_readable_size(self.get_file_total_size())
 
     def get_cleaned_publication_type(self):
         return self.ds_meta_data.publication_type.name.replace("_", " ").title()
 
     def get_zenodo_url(self):
         return f"https://zenodo.org/record/{self.ds_meta_data.deposition_id}" if self.ds_meta_data.dataset_doi else None
-
-    def get_files_count(self):
-        return sum(len(fm.files) for fm in self.feature_models)
-
-    def get_file_total_size(self):
-        return sum(file.size for fm in self.feature_models for file in fm.files)
-
-    def get_file_total_size_for_human(self):
-        from app.modules.dataset.services import SizeService
-
-        return SizeService().get_human_readable_size(self.get_file_total_size())
 
     def get_uvlhub_doi(self):
         from app.modules.dataset.services import DataSetService
@@ -145,20 +116,152 @@ class DataSet(db.Model):
             "url": self.get_uvlhub_doi(),
             "download": f'{request.host_url.rstrip("/")}/dataset/download/{self.id}',
             "zenodo": self.get_zenodo_url(),
-            "files": [file.to_dict() for fm in self.feature_models for file in fm.files],
-            "files_count": self.get_files_count(),
-            "total_size_in_bytes": self.get_file_total_size(),
-            "total_size_in_human_format": self.get_file_total_size_for_human(),
+            "dataset_type": self.dataset_type,
         }
 
     def __repr__(self):
         return f"DataSet<{self.id}>"
 
 
+# ==========================================
+# CLASE HIJA: UVLDataSet (Específico)
+# ==========================================
+class UVLDataSet(DataSet):
+    __tablename__ = "uvl_dataset"
+
+    # Clave primaria que apunta a la base (Joined Table Inheritance)
+    id = db.Column(db.Integer, db.ForeignKey("dataset.id"), primary_key=True)
+
+    # Relación específica de UVL
+    feature_models = db.relationship(
+        "FeatureModel",
+        # primaryjoin="FeatureModel.dataset_id == foreign(UVLDataSet.id)",
+        foreign_keys=[FeatureModel.dataset_id],
+        backref=db.backref("uvl_dataset", overlaps="dataset, feature_models"),
+        lazy=True,
+        cascade="all, delete",
+        overlaps="dataset",
+    )
+
+    __mapper_args__ = {
+        "polymorphic_identity": "uvl",
+    }
+
+    # Lógica y Métodos ESPECÍFICOS de UVL
+    def files(self):
+        return [file for fm in self.feature_models for file in fm.files]
+
+    def get_files_count(self):
+        return sum(len(fm.files) for fm in self.feature_models)
+
+    def get_file_total_size(self):
+        return sum(file.size for fm in self.feature_models for file in fm.files)
+
+    def get_file_total_size_for_human(self):
+        from app.modules.dataset.services import SizeService
+
+        return SizeService().get_human_readable_size(self.get_file_total_size())
+
+    def get_uvlhub_doi(self):
+        from app.modules.dataset.services import DataSetService
+
+        return DataSetService().get_uvlhub_doi(self)
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update(
+            {
+                "files": [file.to_dict() for fm in self.feature_models for file in fm.files],
+                "files_count": self.get_files_count(),
+                "total_size_in_bytes": self.get_file_total_size(),
+                "total_size_in_human_format": self.get_file_total_size_for_human(),
+            }
+        )
+        return data
+
+
+class RawDataSet(DataSet):
+    __tablename__ = "raw_dataset"
+    id = db.Column(db.Integer, db.ForeignKey("dataset.id"), primary_key=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "raw_dataset",
+    }
+
+
+class FormulaDataSet(DataSet):
+    __tablename__ = "formula_dataset"
+
+    # Clave primaria enlazada con la tabla base "dataset"
+    id = db.Column(db.Integer, db.ForeignKey("dataset.id"), primary_key=True)
+
+    # Datos globales de la carrera (comunes a todas las filas del CSV)
+    nombre_gp = db.Column(db.String(200), nullable=False)
+    anio_temporada = db.Column(db.Integer, nullable=False)
+    fecha_carrera = db.Column(db.Date, nullable=False)
+    circuito = db.Column(db.String(200), nullable=False)
+
+    # Resultados por piloto
+    results = db.relationship(
+        "FormulaResult",
+        backref="formula_dataset",
+        cascade="all, delete-orphan",
+        lazy=True,
+    )
+
+    __mapper_args__ = {
+        "polymorphic_identity": "formula",  # valor que irá en dataset.dataset_type
+    }
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update(
+            {
+                "nombre_gp": self.nombre_gp,
+                "anio_temporada": self.anio_temporada,
+                "fecha_carrera": self.fecha_carrera.isoformat() if self.fecha_carrera else None,
+                "circuito": self.circuito,
+                "results": [r.to_dict() for r in self.results],
+            }
+        )
+        return data
+
+
+class FormulaResult(db.Model):
+    __tablename__ = "formula_result"
+
+    id = db.Column(db.Integer, primary_key=True)
+    dataset_id = db.Column(db.Integer, db.ForeignKey("formula_dataset.id"), nullable=False)
+
+    piloto_nombre = db.Column(db.String(120), nullable=False)
+    equipo = db.Column(db.String(120), nullable=False)
+    motor = db.Column(db.String(120), nullable=True)
+
+    # String porque puede ser "1", "DNF", "15", etc.
+    posicion_final = db.Column(db.String(20), nullable=False)
+
+    puntos_obtenidos = db.Column(db.Float, nullable=False, default=0.0)
+    tiempo_carrera = db.Column(db.String(50), nullable=True)
+    vueltas_completadas = db.Column(db.Integer, nullable=True)
+    estado_carrera = db.Column(db.String(120), nullable=True)
+
+    def to_dict(self):
+        return {
+            "piloto_nombre": self.piloto_nombre,
+            "equipo": self.equipo,
+            "motor": self.motor,
+            "posicion_final": self.posicion_final,
+            "puntos_obtenidos": self.puntos_obtenidos,
+            "tiempo_carrera": self.tiempo_carrera,
+            "vueltas_completadas": self.vueltas_completadas,
+            "estado_carrera": self.estado_carrera,
+        }
+
+
 class DSDownloadRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey("data_set.id"))
+    dataset_id = db.Column(db.Integer, db.ForeignKey("dataset.id"))
     download_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     download_cookie = db.Column(db.String(36), nullable=False)  # Assuming UUID4 strings
 
@@ -174,7 +277,7 @@ class DSDownloadRecord(db.Model):
 class DSViewRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey("data_set.id"))
+    dataset_id = db.Column(db.Integer, db.ForeignKey("dataset.id"))
     view_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     view_cookie = db.Column(db.String(36), nullable=False)  # Assuming UUID4 strings
 

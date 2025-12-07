@@ -1,12 +1,12 @@
 from sqlalchemy import Enum as SQLAlchemyEnum
 
 from app import db
-from app.modules.dataset.models import Author, PublicationType
+from app.modules.dataset.models_base import Author, PublicationType
 
 
 class FeatureModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    data_set_id = db.Column(db.Integer, db.ForeignKey("data_set.id"), nullable=False)
+    dataset_id = db.Column(db.Integer, db.ForeignKey("dataset.id"), nullable=False)
     fm_meta_data_id = db.Column(db.Integer, db.ForeignKey("fm_meta_data.id"))
     files = db.relationship("Hubfile", backref="feature_model", lazy=True, cascade="all, delete")
     fm_meta_data = db.relationship("FMMetaData", uselist=False, backref="feature_model", cascade="all, delete")

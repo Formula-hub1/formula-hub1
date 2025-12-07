@@ -1,0 +1,7 @@
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Max Verstappen,Red Bull Racing,Honda RBPT,1,25.0,"1:35:48.333",66,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Lando Norris,McLaren,Mercedes,2,18.0,"1:35:48.653",66,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Charles Leclerc,Ferrari,Ferrari,DNF,0.0,"1:35:49.653",45,"Abandono - Daño por Colisión"
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Lewis Hamilton,Mercedes,Mercedes,5,10.0,"1:36:10.500",66,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Valtteri Bottas,Kick Sauber,Ferrari,15,0.0,"1:36:45.000",65,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Fernando Alonso,Aston Martin,Mercedes,DNF,0.0,"1:35:47.601",21,"Abandono - Pérdida de Potencia"

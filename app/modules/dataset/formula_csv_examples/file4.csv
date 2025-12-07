@@ -1,0 +1,7 @@
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
+Gran Premio de Singapur,2024,2024-09-22,Marina Bay Street Circuit,Carlos Sainz,Ferrari,Ferrari,1,25.0,"1:46:37.418",62,Terminado
+Gran Premio de Singapur,2024,2024-09-22,Marina Bay Street Circuit,George Russell,Mercedes,Mercedes,3,15.0,"1:46:40.800",62,Terminado
+Gran Premio de Singapur,2024,2024-09-22,Marina Bay Street Circuit,Yuki Tsunoda,RB,Honda RBPT,8,4.0,"1:46:55.120",62,Terminado
+Gran Premio de Singapur,2024,2024-09-22,Marina Bay Street Circuit,Zhou Guanyu,Kick Sauber,Ferrari,DSQ,0.0,"1:47:30.500",62,"Descalificado - Infracción Técnica"
+Gran Premio de Singapur,2024,2024-09-22,Marina Bay Street Circuit,Esteban Ocon,Alpine,Renault,DNF,0.0,"NULL",43,"Abandono - Problema en la Caja de Cambios"
+Gran Premio de Singapur,2024,2024-09-22,Marina Bay Street Circuit,Kevin Magnussen,Haas,Ferrari,13,0.0,"1:47:50.000",61,Terminado

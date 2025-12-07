@@ -1,0 +1,7 @@
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
+Gran Premio de Australia,2024,2024-03-24,Albert Park,Carlos Sainz,Ferrari,Ferrari,1,25.0,"1:20:26.843",58,Terminado
+Gran Premio de Australia,2024,2024-03-24,Albert Park,Charles Leclerc,Ferrari,Ferrari,2,18.0,"1:20:29.643",58,Terminado
+Gran Premio de Australia,2024,2024-03-24,Albert Park,Oscar Piastri,McLaren,Mercedes,8,4.0,"1:21:05.100",58,Terminado
+Gran Premio de Australia,2024,2024-03-24,Albert Park,Lando Norris,McLaren,Mercedes,3,16.0,"1:20:30.900",58,Terminado
+Gran Premio de Australia,2024,2024-03-24,Albert Park,Max Verstappen,Red Bull Racing,Honda RBPT,DNF,0.0,"NULL",1,"Abandono - Fallo en el Freno Trasero"
+Gran Premio de Australia,2024,2024-03-24,Albert Park,Alexander Albon,Williams,Mercedes,DNF,0.0,"NULL",10,"Abandono - Accidente"

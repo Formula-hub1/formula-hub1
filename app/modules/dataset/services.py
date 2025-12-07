@@ -1,4 +1,6 @@
+import csv
 import hashlib
+import io
 import json
 import logging
 import os
@@ -10,7 +12,8 @@ from typing import Optional
 from flask import request
 
 from app.modules.auth.services import AuthenticationService
-from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord
+from app.modules.dataset.forms import FormulaDataSetForm, UVLDataSetForm
+from app.modules.dataset.models import DataSet, DSMetaData, DSViewRecord, FormulaDataSet, FormulaResult, UVLDataSet
 from app.modules.dataset.repositories import (
     AuthorRepository,
     CommentRepository,
@@ -138,45 +141,169 @@ class DataSetService(BaseService):
     def total_dataset_views(self) -> int:
         return self.dsviewrecord_repository.total_dataset_views()
 
+    # def create_from_form(self, form, current_user) -> DataSet:
+    #     main_author = {
+    #         "name": f"{current_user.profile.surname}, {current_user.profile.name}",
+    #         "affiliation": current_user.profile.affiliation,
+    #         "orcid": current_user.profile.orcid,
+    #     }
+    #     try:
+    #         logger.info(f"Creating dsmetadata...: {form.get_dsmetadata()}")
+
+    #         dsmetadata = self.dsmetadata_repository.create(**form.get_dsmetadata())
+    #         for author_data in [main_author] + form.get_authors():
+    #             author = self.author_repository.create(commit=False, ds_meta_data_id=dsmetadata.id, **author_data)
+    #             dsmetadata.authors.append(author)
+
+    #         dataset = self.create(commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id)
+
+    #         for feature_model in form.feature_models:
+    #             uvl_filename = feature_model.uvl_filename.data
+    #             fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
+    #             for author_data in feature_model.get_authors():
+    #                 author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
+    #                 fmmetadata.authors.append(author)
+
+    #             fm = self.feature_model_repository.create(
+    #                 commit=False, data_set_id=dataset.id, fm_meta_data_id=fmmetadata.id
+    #             )
+
+    #             # associated files in feature model
+    #             file_path = os.path.join(current_user.temp_folder(), uvl_filename)
+    #             checksum, size = calculate_checksum_and_size(file_path)
+
+    #             file = self.hubfilerepository.create(
+    #                 commit=False, name=uvl_filename, checksum=checksum, size=size, feature_model_id=fm.id
+    #             )
+    #             fm.files.append(file)
+    #         self.repository.session.commit()
+    #     except Exception as exc:
+    #         logger.info(f"Exception creating dataset from form...: {exc}")
+    #         self.repository.session.rollback()
+    #         raise exc
+    #   return dataset
+
     def create_from_form(self, form, current_user) -> DataSet:
         main_author = {
             "name": f"{current_user.profile.surname}, {current_user.profile.name}",
             "affiliation": current_user.profile.affiliation,
             "orcid": current_user.profile.orcid,
         }
+
         try:
             logger.info(f"Creating dsmetadata...: {form.get_dsmetadata()}")
+
+            # 1. Crear Metadatos Comunes (DSMetaData)
             dsmetadata = self.dsmetadata_repository.create(**form.get_dsmetadata())
             for author_data in [main_author] + form.get_authors():
                 author = self.author_repository.create(commit=False, ds_meta_data_id=dsmetadata.id, **author_data)
                 dsmetadata.authors.append(author)
 
-            dataset = self.create(commit=False, user_id=current_user.id, ds_meta_data_id=dsmetadata.id)
+            dataset = None
 
-            for feature_model in form.feature_models:
-                uvl_filename = feature_model.uvl_filename.data
-                fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
-                for author_data in feature_model.get_authors():
-                    author = self.author_repository.create(commit=False, fm_meta_data_id=fmmetadata.id, **author_data)
-                    fmmetadata.authors.append(author)
+            # -----------------------------------------------------------
+            # CASO A: DATASET UVL (Lógica original)
+            # -----------------------------------------------------------
+            if isinstance(form, UVLDataSetForm):
+                # Instanciamos UVLDataSet
+                dataset = UVLDataSet(user_id=current_user.id, ds_meta_data_id=dsmetadata.id)
+                self.repository.session.add(dataset)
+                self.repository.session.flush()  # Para obtener el ID del dataset antes de usarlo
 
-                fm = self.feature_model_repository.create(
-                    commit=False, data_set_id=dataset.id, fm_meta_data_id=fmmetadata.id
+                for feature_model in form.feature_models:
+                    uvl_filename = feature_model.uvl_filename.data
+                    fmmetadata = self.fmmetadata_repository.create(commit=False, **feature_model.get_fmmetadata())
+                    for author_data in feature_model.get_authors():
+                        author = self.author_repository.create(
+                            commit=False, fm_meta_data_id=fmmetadata.id, **author_data
+                        )
+                        fmmetadata.authors.append(author)
+
+                    fm = self.feature_model_repository.create(
+                        commit=False, dataset_id=dataset.id, fm_meta_data_id=fmmetadata.id
+                    )
+
+                    # associated files in feature model
+                    file_path = os.path.join(current_user.temp_folder(), uvl_filename)
+                    checksum, size = calculate_checksum_and_size(file_path)
+
+                    file = self.hubfilerepository.create(
+                        commit=False, name=uvl_filename, checksum=checksum, size=size, feature_model_id=fm.id
+                    )
+                    fm.files.append(file)
+
+            # -----------------------------------------------------------
+            # CASO B: DATASET FÓRMULA 1 (Nueva Lógica CSV)
+            # -----------------------------------------------------------
+            elif isinstance(form, FormulaDataSetForm):
+                # Obtener archivo del formulario
+                csv_file = form.csv_file.data
+
+                # Leer el stream del archivo como texto (utf-8)
+                stream = io.TextIOWrapper(csv_file.stream, encoding="utf-8")
+                csv_reader = csv.DictReader(stream)
+
+                # Convertir a lista para procesar
+                rows = list(csv_reader)
+
+                if not rows:
+                    raise Exception("El archivo CSV está vacío o no es válido.")
+
+                # Usamos la primera fila para los datos globales del Gran Premio
+                first_row = rows[0]
+
+                # Crear el dataset específico de Fórmula 1
+                dataset = FormulaDataSet(
+                    user_id=current_user.id,
+                    ds_meta_data_id=dsmetadata.id,
+                    # Mapeo de columnas CSV a Modelo
+                    nombre_gp=first_row.get("nombre_gp", "Desconocido"),
+                    anio_temporada=int(first_row.get("anio_temporada", datetime.now().year)),
+                    # Manejo de fecha seguro
+                    fecha_carrera=(
+                        datetime.strptime(first_row.get("fecha_carrera"), "%Y-%m-%d").date()
+                        if first_row.get("fecha_carrera")
+                        else datetime.now().date()
+                    ),
+                    circuito=first_row.get("circuito", "Desconocido"),
                 )
+                self.repository.session.add(dataset)
+                self.repository.session.flush()  # Obtener ID
 
-                # associated files in feature model
-                file_path = os.path.join(current_user.temp_folder(), uvl_filename)
-                checksum, size = calculate_checksum_and_size(file_path)
+                # Iterar filas para crear los resultados de cada piloto
+                for row in rows:
+                    # Conversiones seguras para números
+                    try:
+                        puntos = float(row.get("puntos_obtenidos", 0.0))
+                    except ValueError:
+                        puntos = 0.0
 
-                file = self.hubfilerepository.create(
-                    commit=False, name=uvl_filename, checksum=checksum, size=size, feature_model_id=fm.id
-                )
-                fm.files.append(file)
+                    try:
+                        vueltas = int(row.get("vueltas_completadas", 0))
+                    except ValueError:
+                        vueltas = 0
+
+                    result = FormulaResult(
+                        dataset_id=dataset.id,
+                        piloto_nombre=row.get("piloto_nombre"),
+                        equipo=row.get("equipo"),
+                        motor=row.get("motor"),
+                        posicion_final=row.get("posicion_final"),
+                        puntos_obtenidos=puntos,
+                        tiempo_carrera=row.get("tiempo_carrera"),
+                        vueltas_completadas=vueltas,
+                        estado_carrera=row.get("estado_carrera"),
+                    )
+                    self.repository.session.add(result)
+
+            # Confirmar transacción
             self.repository.session.commit()
+
         except Exception as exc:
             logger.info(f"Exception creating dataset from form...: {exc}")
             self.repository.session.rollback()
             raise exc
+
         return dataset
 
     def update_dsmetadata(self, id, **kwargs):

@@ -1,0 +1,7 @@
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
+Gran Premio de Bélgica,2023,2023-07-30,Spa-Francorchamps,Max Verstappen,Red Bull Racing,Honda RBPT,1,25.0,"1:22:30.450",44,Terminado
+Gran Premio de Bélgica,2023,2023-07-30,Spa-Francorchamps,Sergio Pérez,Red Bull Racing,Honda RBPT,2,18.0,"1:22:34.500",44,Terminado
+Gran Premio de Bélgica,2023,2023-07-30,Spa-Francorchamps,George Russell,Mercedes,Mercedes,6,8.0,"1:23:05.100",44,Terminado
+Gran Premio de Bélgica,2023,2023-07-30,Spa-Francorchamps,Pierre Gasly,Alpine,Renault,11,0.0,"1:23:45.333",44,Terminado
+Gran Premio de Bélgica,2023,2023-07-30,Spa-Francorchamps,Yuki Tsunoda,RB,Honda RBPT,10,0.0,"1:23:35.000",44,"Terminado - Penalización de 5s"
+Gran Premio de Bélgica,2023,2023-07-30,Spa-Francorchamps,Carlos Sainz,Ferrari,Ferrari,DNF,0.0,"NULL",23,"Abandono - Daño por Colisión"

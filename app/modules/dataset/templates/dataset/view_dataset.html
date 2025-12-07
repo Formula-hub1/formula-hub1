@@ -110,7 +110,7 @@
 
                 {% if dataset.ds_meta_data.dataset_doi %}
                 <div class="row mb-2">
-                    
+
                         <div class="col-md-4 col-12">
                             <span class=" text-secondary">
                                 Zenodo record
@@ -154,7 +154,7 @@
 
                 </div>
 
-                
+
 
             </div>
 
@@ -174,11 +174,11 @@
                         {{ dataset.get_uvlhub_doi() }}
                     </span>
                 </button>
-                
+
                 <div id="dataset_doi_uvlhub" style="display: none">
                     {{ dataset.get_uvlhub_doi() }}
                 </div>
-                
+
             </div>
             {% endif %}
 
@@ -190,7 +190,7 @@
             <div class="card-body">
 
                 <h3> Recommended datasets </h3>
-                
+
                 <div id="recommendation-list">
                     <p class="text-secondary" id="loading-message">Loading suggestions...</p>
                 </div>
@@ -202,7 +202,7 @@
             <div class="card-body">
 
                 <h3> Related publication </h3>
-                
+
                 David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel Horcas, David Benavides,
                 <i>UVLHub: A feature model data repository using UVL and open science principles</i>,
                 Journal of Systems and Software,
@@ -250,19 +250,19 @@
 
                 <div class="row">
                     <div class="col-12 d-flex justify-content-between align-items-center">
-                        <h4 style="margin-bottom: 0px">UVL models</h4>
+                        <h4 style="margin-bottom: 0px">Models</h4>
                         <h4 style="margin-bottom: 0px;"><span class="badge bg-dark">{{ dataset.get_files_count() }}</span></h4>
                     </div>
                 </div>
-                
+
 
             </div>
-            
+
 
             {% for feature_model in dataset.feature_models %}
                 {% for file in feature_model.files %}
                     <div class="list-group-item">
-                        
+
                         <div class="row">
                             <div class="col-12">
 
@@ -278,7 +278,7 @@
                                     </div>
                                 </div>
 
-                                
+
                             </div>
                             <div class="col-12 text-end" >
 
@@ -296,7 +296,7 @@
                                         </li>
                                         </ul>
                                 </div>
-                                
+
                                 <div class="btn-group" role="group">
                                     <button id="btnGroupDropExport{{ file.id }}" type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style=" border-radius: 5px;">
                                         <i data-feather="download"></i> Export
@@ -322,8 +322,8 @@
                                         </li>
                                     </ul>
                                 </div>
-                                
-                                
+
+
 
                             </div>
                         </div>
@@ -331,15 +331,15 @@
                 {% endfor %}
             {% endfor %}
         </div>
-        
-        
-    
+
+
+
         <a href="/dataset/download/{{ dataset.id }}" class="btn btn-primary mt-3" style="border-radius: 5px;">
             <i data-feather="download" class="center-button-icon"></i>
             Download all ({{ dataset.get_file_total_size_for_human() }})
         </a>
     </div>
-    
+
 </div>
 
 <div class="modal fade" id="fileViewerModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
@@ -379,7 +379,7 @@
         const recommendationContainer = document.getElementById('recommendation-list');
 
         if (datasetId && recommendationContainer) {
-            
+
             fetch(`/datasets/${datasetId}/recommendations`)
                 .then(response => {
                     if (!response.ok) {
@@ -395,7 +395,7 @@
                         let htmlContent = '<div class="list-group">';
                         data.recommended_datasets.forEach(rec => {
                             htmlContent += `
-                                <a href="/doi/10.1234/dataset${rec.id}/" class="list-group-item list-group-item-action">
+                                <a href="${rec.url}" class="list-group-item list-group-item-action">
                                     ${rec.title}
                                 </a>`;
                         });
@@ -504,7 +504,7 @@
             `
             import js
 
-            file_content = js.document.getElementById('fileContent').textContent 
+            file_content = js.document.getElementById('fileContent').textContent
             div = js.document.createElement("result")
 
             with open("uvlfile.uvl", "w") as text_file:
