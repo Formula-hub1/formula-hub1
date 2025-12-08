@@ -37,6 +37,12 @@ def check_uvl(file_id):
 
     try:
         hubfile = HubfileService().get_by_id(file_id)
+        filename = getattr(hubfile, "name", "") or os.path.basename(hubfile.get_path())
+        ext = os.path.splitext(filename)[1].lower()
+
+        if ext != ".uvl":
+            return jsonify({"message": "Valid Model"}), 200
+
         input_stream = FileStream(hubfile.get_path())
         lexer = UVLCustomLexer(input_stream)
 
