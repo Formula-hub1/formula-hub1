@@ -1,7 +1,7 @@
 import re
 
 import unidecode
-from sqlalchemy import and_, any_, or_
+from sqlalchemy import and_, or_
 
 from app.modules.dataset.models import Author, DataSet, DSMetaData, PublicationType
 from app.modules.featuremodel.models import FeatureModel, FMMetaData
@@ -120,13 +120,13 @@ class ExploreRepository(BaseRepository):
         # 3. FILTRADO POR TAGS (Usa la variable `tags` de los argumentos)
         # -------------------------------------------------------------
         # tags puede ser None (Any), lista vacía [] (None), o lista con tags ['tag1'].
-        if tags is not None and tags:
-            # Filtra por datasets que contengan al menos uno de las tags
-            datasets_query = datasets_query.filter(DSMetaData.tags.ilike(any_(f"%{tag}%" for tag in tags)))
-        elif tags is not None and not tags:
-            # Si tags es una lista vacía [], significa que buscamos "None"
-            datasets_query = datasets_query.filter(DSMetaData.tags.is_(None))
-        # Si tags es None (valor por defecto o 'Any' en el frontend), no aplicamos filtro, incluye todos.
+        if tags:
+            # Creamos una lista de condiciones OR
+            # Si busco "f1", busca que "f1" esté dentro del campo tags de la base de datos
+            tag_conditions = [DSMetaData.tags.ilike(f"%{tag}%") for tag in tags]
+
+            # Aplicamos el filtro: (tags contiene 'tag1' OR tags contiene 'tag2')
+            datasets_query = datasets_query.filter(or_(*tag_conditions))
 
         # -------------------------------------------------------------
         # 4. ORDENAMIENTO

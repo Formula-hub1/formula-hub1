@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Asignar listeners a los filtros (solo una vez)
     setupFilterListeners();
-    
+
     // 2. Comprobar parámetros de URL y ejecutar la búsqueda inicial
     handleInitialLoad();
 });
@@ -11,10 +11,15 @@ function performSearch() {
     const headerQueryInput = document.getElementById('search-query');
     const sidebarQueryInput = document.getElementById('query');
 
+    // 1. Verificamos que ambos inputs existan.
+    // 2. Comparamos sus VALORES (.value), no los elementos.
+    // 3. Copiamos del Sidebar AL Header (porque aquí es donde estás escribiendo).
     if (headerQueryInput && sidebarQueryInput) {
-        sidebarQueryInput.value = headerQueryInput.value;
+        if (headerQueryInput.value !== sidebarQueryInput.value) {
+            headerQueryInput.value = sidebarQueryInput.value;
+        }
     }
-    
+
     console.log("performing search...");
 
     // Limpiar resultados y ocultar el icono de "No encontrado"
@@ -31,19 +36,19 @@ function performSearch() {
         sorting: document.querySelector('[name="sorting"]:checked').value, // Obtener el valor del filtro de ordenamiento
     };
 
-    // Obtengo aquí los valores de la busqueda del advanced filter 
+    // Obtengo aquí los valores de la busqueda del advanced filter
     // Uso ? para el manejejo de elementos solo existentes en base_template.html
     searchCriteria.author = document.getElementById('filter-author')?.value || '';
     searchCriteria.description = document.getElementById('filter-description')?.value || '';
     searchCriteria.uvl_files = document.getElementById('filter-file')?.value || '';
     searchCriteria.date = document.getElementById('filter-date')?.value || '';
-    const tagsSelected = document.getElementById('tags');
-    if (tagsSelected && tagsSelected.value !== 'Any' && tagsSelected.value !== 'None' ) {
-        searchCriteria.tags = [tagsSelected.value]; //Si se selecciona un tag específico, lo envia como array de un elemento
-    } else if (tagsSelected && tagsSelected.value === 'None') {
-        searchCriteria.tags = []; //Si se selecciona 'None', envia un array vacío
+    const tagsInput = document.getElementById('filter-tags-nav');
+    if (tagsInput && tagsInput.value.trim() !== '') {
+        // Separamos por comas, quitamos espacios en blanco y creamos el array
+        // Ejemplo: "f1, racing" -> ["f1", "racing"]
+        searchCriteria.tags = tagsInput.value.split(',').map(tag => tag.trim());
     } else {
-        searchCriteria.tags = null; //Si se selecciona 'Any' o no existe el elemento, envia null
+        searchCriteria.tags = [];
     }
     console.log("Criteria to send:", searchCriteria);
 
@@ -160,16 +165,35 @@ function performSearch() {
 
 // Función para asignar listeners a los filtros
 function setupFilterListeners() {
-    // Selecciona todos los inputs (incluyendo #query), selects y radios dentro de #filters
     const filters = document.querySelectorAll('#filters input, #filters select, #filters [type="radio"]');
 
     filters.forEach(filter => {
-        // Al detectar un cambio (evento 'input'), ejecuta la búsqueda
-        filter.addEventListener('input', performSearch);
+
+        // Es la BARRA DE BÚSQUEDA (Texto)
+        if (filter.id === 'query') {
+            // Escuchamos cuando se baja una tecla
+            filter.addEventListener('keydown', (event) => {
+                // Solo buscamos si la tecla es ENTER
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Evita que se recargue la página si hay un form
+                    performSearch();
+                }
+            });
+        }
+
+        // Son los OTROS FILTROS (Selects, Radio buttons, Fechas...)
+        // Estos es mejor dejarlos con 'change' para que al hacer click se filtren solos.
+        // (Si también quieres que estos esperen a un botón, avísame, pero lo estándar es que sean inmediatos).
+        else {
+            filter.addEventListener('change', performSearch);
+        }
     });
 
-    // Asignamos el listener del botón limpiar
-    document.getElementById('clear-filters').addEventListener('click', clearFilters);
+    // Listener del botón limpiar
+    const clearBtn = document.getElementById('clear-filters');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearFilters);
+    }
 }
 
 // Función para manejar la carga inicial y el parámetro 'query' de la URL
@@ -199,7 +223,7 @@ function handleInitialLoad() {
         'description': 'filter-description',
         'file': 'filter-file',
         'date': 'filter-date',
-        'tags': 'tags'
+        'tags': 'filter-tags-nav'
     };
 
     for (const [paramName, elementId] of Object.entries(advancedFIltersMAp)) {
@@ -227,7 +251,7 @@ function set_tag_as_query(tagName) {
     const queryInput = document.getElementById('query');
     queryInput.value = tagName.trim();
     // Llama directamente a la búsqueda
-    performSearch(); 
+    performSearch();
 }
 
 function set_publication_type_as_query(publicationType) {
@@ -263,8 +287,10 @@ function clearFilters() {
     document.getElementById('filter-description').value = '';
     document.getElementById('filter-file').value = '';
     document.getElementById('filter-date').value = '';
-    document.getElementById('tags').value = 'Any';
-
+    const tagsInput = document.getElementById('filter-tags-nav');
+    if (tagsInput) {
+        tagsInput.value = '';
+    }
     // Realizar una nueva búsqueda con los filtros reseteados
-    performSearch(); 
+    performSearch();
 }
