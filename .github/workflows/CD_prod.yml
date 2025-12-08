@@ -1,0 +1,80 @@
+name: 🚀 CD - Production Environment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-prod:
+    name: 🐳 Build, Deploy & Notify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # ✅ Añadido id: build para rastrear este paso
+      - name: Build and Push Docker Image (Prod)
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/images/Dockerfile.prod
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USER }}/formula-hub:latest
+            ${{ secrets.DOCKER_USER }}/formula-hub:${{ github.sha }}
+
+      # ✅ El id: render ya estaba, lo usamos para rastrear este paso
+      - name: Trigger Render Prod Deployment
+        id: render
+        # Solo intentamos llamar a Render si el Build fue bien
+        if: steps.build.outcome == 'success'
+        run: |
+          if curl -f "${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK_URL }}"; then
+             echo "status=success" >> $GITHUB_OUTPUT
+          else
+             echo "status=failure" >> $GITHUB_OUTPUT
+             exit 1
+          fi
+
+      # 🔔 Notificación Inteligente
+      - name: Notify Discord
+        if: always() # Se ejecuta siempre para reportar
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+
+          BUILD_RESULT: ${{ steps.build.outcome }}
+          RENDER_RESULT: ${{ steps.render.outcome }}
+
+          RENDER_CURL_STATUS: ${{ steps.render.outputs.status }}
+        run: |
+          # 1. ¿Falló Docker?
+          if [[ "$BUILD_RESULT" != "success" ]]; then
+            COLOR=15548997 # Rojo
+            TITLE="🔥 Fallo en Docker Hub"
+            DESC="No se pudo construir o subir la imagen. *El despliegue se ha cancelado*.\nRevisa el Dockerfile."
+
+          # 2. ¿Falló la llamada a Render? (El paso se ejecutó pero el curl falló o se saltó)
+          elif [[ "$RENDER_RESULT" != "success" || "$RENDER_CURL_STATUS" != "success" ]]; then
+            COLOR=16776960 # Amarillo/Naranja
+            TITLE="⚠️ Fallo al avisar a Render"
+            DESC="La imagen se subió correctamente a Docker Hub, pero *Render no respondió* al webhook.\nEs posible que Render esté caído o la URL del secreto esté mal."
+
+          # 3. ¡Éxito Total!
+          else
+            COLOR=5763719 # Verde
+            TITLE="🚀 Despliegue Exitoso"
+            DESC="*Fase 1:* Imagen Docker actualizada.\n*Fase 2:* Render ha recibido la orden de despliegue."
+          fi
+
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"embeds\": [{\"title\": \"$TITLE\", \"description\": \"$DESC\", \"color\": $COLOR}]}" \
+               $DISCORD_WEBHOOK
