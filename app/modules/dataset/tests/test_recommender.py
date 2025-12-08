@@ -24,9 +24,11 @@ class MockAuthor:
 class MockDSMetaData:
     """Simula el objeto DSMetaData para tags y autores."""
 
-    def __init__(self, tags, authors):
+    def __init__(self, tags, authors, title="Test Dataset"):
         self.tags = tags
-        self.authors = authors
+        self.authors = [MockAuthor(aid) for aid in authors]
+        self.title = title
+        self.dataset_doi = "10.1234/mockdoi"
 
 
 class MockDataSet:

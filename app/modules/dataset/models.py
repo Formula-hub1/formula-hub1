@@ -4,7 +4,7 @@ from flask import request
 from sqlalchemy import Enum as SQLAlchemyEnum
 
 from app import db
-from app.modules.dataset.models_base import Author, PublicationType
+from app.modules.dataset.models_base import Author, PublicationType  # noqa: F401
 from app.modules.featuremodel.models import FeatureModel
 
 
@@ -40,7 +40,6 @@ class Comment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     user = db.relationship("User")
 
-    #
     children = db.relationship(
         "Comment", backref=db.backref("parent", remote_side=[id]), cascade="all, delete-orphan", single_parent=True
     )
