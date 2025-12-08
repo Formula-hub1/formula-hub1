@@ -1,0 +1,44 @@
+#----------------------------------------
+# CD - Dev Environment (Docker)
+# This workflow builds and deploys the Docker image
+# to the development environment on Render
+# Triggered on pushes to the 'trunk' branch
+#----------------------------------------
+
+name: 🛠️ CD - Dev Environment
+
+on:
+  push:
+    branches:
+      - trunk
+
+jobs:
+  deploy-dev:
+    name: 🐳 Build & Deploy Dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Image (Dev)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/images/Dockerfile.dev
+          push: true
+          tags: ${{ secrets.DOCKER_USER }}/formula-hub:dev
+
+      - name: Trigger Render Dev Deployment
+        run: |
+          if curl -f "${{ secrets.RENDER_DEVELOPMENT_DEPLOY_HOOK_URL }}"; then
+            echo "✅ Render Dev avisado correctamente."
+          else
+            echo "❌ Error al contactar con Render Dev."
+            exit 1
+          fi

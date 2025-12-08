@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      
+
       # Step 1: Check out the repository code
       - uses: actions/checkout@v5
 
@@ -31,7 +31,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           TAG=${{ github.event.release.tag_name }}
-          IMAGE=${{ secrets.DOCKER_USER }}/uvlhub
+          IMAGE=${{ secrets.DOCKER_USER }}/formula-hub
 
           docker build --build-arg VERSION_TAG=$TAG -t $IMAGE:$TAG -f docker/images/Dockerfile.prod .
           docker push $IMAGE:$TAG
