@@ -46,32 +46,27 @@ jobs:
 
       # 🔔 Notificación Inteligente
       - name: Notify Discord
-        if: always() # Se ejecuta siempre para reportar
+        if: always()
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-
-          BUILD_RESULT: ${{ steps.build.outcome }}
-          RENDER_RESULT: ${{ steps.render.outcome }}
-
-          RENDER_CURL_STATUS: ${{ steps.render.outputs.status }}
+          BUILD_STATUS: ${{ steps.build.outcome }}
+          DEPLOY_STATUS: ${{ steps.render.outcome }}
         run: |
-          # 1. ¿Falló Docker?
-          if [[ "$BUILD_RESULT" != "success" ]]; then
+          # Lógica de mensajes REAL
+          if [[ "$BUILD_STATUS" != "success" ]]; then
             COLOR=15548997 # Rojo
             TITLE="🔥 Fallo en Docker Hub"
-            DESC="No se pudo construir o subir la imagen. *El despliegue se ha cancelado*.\nRevisa el Dockerfile."
+            DESC="No se pudo construir la imagen. No se ha intentado desplegar."
 
-          # 2. ¿Falló la llamada a Render? (El paso se ejecutó pero el curl falló o se saltó)
-          elif [[ "$RENDER_RESULT" != "success" || "$RENDER_CURL_STATUS" != "success" ]]; then
-            COLOR=16776960 # Amarillo/Naranja
-            TITLE="⚠️ Fallo al avisar a Render"
-            DESC="La imagen se subió correctamente a Docker Hub, pero *Render no respondió* al webhook.\nEs posible que Render esté caído o la URL del secreto esté mal."
+          elif [[ "$DEPLOY_STATUS" != "success" ]]; then
+            COLOR=15105570 # Naranja
+            TITLE="💥 Fallo en Render"
+            DESC="La imagen subió bien, pero **Render no ha podido arrancarla**. La web puede estar caída o usando la versión anterior.\nRevisa los logs de Render."
 
-          # 3. ¡Éxito Total!
           else
             COLOR=5763719 # Verde
-            TITLE="🚀 Despliegue Exitoso"
-            DESC="*Fase 1:* Imagen Docker actualizada.\n*Fase 2:* Render ha recibido la orden de despliegue."
+            TITLE="✅ Despliegue COMPLETADO"
+            DESC="Render ha confirmado que la nueva versión está **Online**."
           fi
 
           curl -H "Content-Type: application/json" \
