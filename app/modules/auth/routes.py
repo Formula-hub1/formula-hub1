@@ -79,14 +79,15 @@ def show_recover_password_form():
 @auth_bp.route("/reset-password/", methods=["GET", "POST"])
 def reset_password_form():
     token = request.args.get("token")
-    user_id = authentication_service.verify_reset_token(token)
-    if not user_id:
+    user = authentication_service.verify_reset_token(token)
+    if not user:
         return redirect(url_for("auth.login"))
 
     form = ResetPasswordForm()
+
     if form.validate_on_submit():
-        authentication_service.update_password(current_user.id, **form.data)
+        authentication_service.update_password(user.id, form.password.data)
         db.session.commit()
-        return redirect(url_for("auth/login_form.html"))
+        return redirect(url_for("auth.login"))
 
     return render_template("auth/reset_password_form.html", form=form)

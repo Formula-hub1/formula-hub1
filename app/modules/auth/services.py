@@ -1,11 +1,17 @@
 import os
-
 import itsdangerous
+import base64
+from email.mime.text import MIMEText
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+
 from flask import current_app, url_for
 from flask_login import current_user, login_user
 from flask_mail import Message
 
-from app.extensions import mail
+from app import mail
 from app.modules.auth.models import User
 from app.modules.auth.repositories import UserRepository
 from app.modules.profile.models import UserProfile
@@ -14,16 +20,43 @@ from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
 
 
+def _create_and_send_message_oauth(recipient_email: str, subject: str, body_html: str):
+    
+    TOKEN_FILE = current_app.config['GMAIL_OAUTH_TOKEN_PATH']
+    SENDER_EMAIL = current_app.config['GMAIL_SENDER_EMAIL']
+    SCOPES = ['https://mail.google.com/'] 
+
+    try:
+        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
+    except FileNotFoundError:
+        raise Exception(f"OAuth Token not found in {TOKEN_FILE}.")
+
+    if creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+    
+    service = build('gmail', 'v1', credentials=creds)
+    
+    message = MIMEText(body_html, 'html')
+    message['to'] = recipient_email
+    message['from'] = SENDER_EMAIL
+    message['subject'] = subject
+    
+    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+    
+    service.users().messages().send(userId='me', body={'raw': raw_message}).execute()
+    return True
+
+
 class AuthenticationService(BaseService):
 
     def __init__(self):
         self.user_repository = UserRepository()
         super().__init__(self.user_repository)
-        self.user_repository = UserRepository()
         self.user_profile_repository = UserProfileRepository()
 
     def _get_serializer(self):
         return itsdangerous.URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+
 
     def login(self, email, password, remember=True):
         user = self.repository.get_by_email(email)
@@ -93,11 +126,12 @@ class AuthenticationService(BaseService):
     def verify_reset_token(self, token):
         try:
             data = self._get_serializer().loads(token, max_age=3600)
+            user_id = data.get("user_id")
 
-            if not data or "user_id" not in data:
+            if not data or not user_id:
                 return None
 
-            return data.get("user_id")
+            return self.user_repository.get_by_id(user_id)
         except (itsdangerous.SignatureExpired, itsdangerous.BadTimeSignature):
             return None
         except Exception as exc:
@@ -105,32 +139,29 @@ class AuthenticationService(BaseService):
             return None
 
     def update_password(self, user_id, password):
-        user = User.query.get(user_id)
+        user = self.user_repository.get_by_id(user_id)
         if user:
             user.set_password(password)
-            self.repository.commit()
+            self.repository.session.commit()
 
     def send_email(self, **kwargs) -> str:
         email = kwargs.get("email")
-        # if not email:
-        # raise ValueError("Email address is required")
-
         user = self.user_repository.get_by_email(email)
         if user is None:
             return "Email should be associated to an existing account"
 
-        recover_url = url_for("auth.reset_password_form", token=self.generate_reset_token(user.id), _external=True)
+        reset_token = self.generate_reset_token(user.id)
+        recover_url = url_for("auth.reset_password_form", token=reset_token, _external=True)
 
         msg = Message(
-            subject="Password recovery - Formula Hub",
+            subject = "Password recovery - Formula Hub",
             recipients=[email],
-            body=f"Click this link to reset your password:\n{recover_url}",
-        )
+            body = ("Dear user\n\n"
+                "There has been a request to reset your Formula Hub account password.\n\n"
+                f"Reset your password clicking the following link: {recover_url}\n\n"
+                "If you did not request a password reset, ignore this email.")
+            )
 
-        try:
-            with current_app.app_context():
-                mail.send(msg)
-        except Exception as exc:
-            raise exc
+        mail.send(msg)
 
-        return f"Email sent to {email}"
+        return f"Email succesfully sent to {email}"
