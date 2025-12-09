@@ -11,19 +11,19 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && apt-get install -y --no-install-recommends bash \
     && apt-get install -y --no-install-recommends openrc \
-    && apt-get install -y --no-install-recommends build-essential 
+    && apt-get install -y --no-install-recommends build-essential
 
 # Install Docker CLI
 RUN apt-get install -y --no-install-recommends ca-certificates gnupg lsb-release \
     && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list \
     && apt-get update \
-    && apt-get install -y --no-install-recommends docker-ce-cli 
+    && apt-get install -y --no-install-recommends docker-ce-cli
 
 # Clean up
 RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-        
+
 # Set the working directory in the container to /app
 WORKDIR /app
 
@@ -44,6 +44,10 @@ COPY --chmod=0755 scripts/init-testing-db.sh ./scripts/
 COPY rosemary/ ./rosemary
 COPY pyproject.toml ./
 COPY docker/ ./docker
+COPY app/ ./app
+COPY core/ ./core
+COPY migrations/ ./migrations
+COPY scripts/render_entrypoint.sh /app/entrypoint.sh
 
 # Update pip
 RUN pip install --no-cache-dir --upgrade pip
@@ -56,3 +60,6 @@ RUN pip install -e ./
 
 # Expose port 5000 for the Flask app
 EXPOSE 5000
+
+RUN chmod +x /app/entrypoint.sh
+CMD ["/app/entrypoint.sh"]

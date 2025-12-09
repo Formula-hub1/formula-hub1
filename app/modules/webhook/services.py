@@ -1,3 +1,4 @@
+import os
 import subprocess
 from datetime import datetime, timezone
 
@@ -7,7 +8,20 @@ import docker
 from app.modules.webhook.repositories import WebhookRepository
 from core.services.BaseService import BaseService
 
-client = docker.from_env()
+FLASK_ENV = os.getenv("FLASK_ENV", "production")
+
+if FLASK_ENV in ["development", "testing"]:
+    # Esto es seguro en local (docker compose), pero peligroso en la nube.
+    # Solo se debe ejecutar si el contenedor tiene acceso al socket (que no es el caso de Render).
+    try:
+        client = docker.from_env()
+    except Exception as e:
+        # En caso de error, inicializamos a None para evitar que el worker falle
+        print(f"⚠️ Docker client initialization failed (Expected in Render): {e}")
+        client = None
+else:
+    # En producción (Render), el cliente Docker debe ser None para evitar el crash.
+    client = None
 
 
 class WebhookService(BaseService):
