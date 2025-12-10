@@ -10,7 +10,6 @@ from app.modules.profile.services import UserProfileService
 authentication_service = AuthenticationService()
 user_profile_service = UserProfileService()
 
-
 @auth_bp.route("/signup/", methods=["GET", "POST"])
 def show_signup_form():
     if current_user.is_authenticated:
@@ -33,7 +32,6 @@ def show_signup_form():
 
     return render_template("auth/signup_form.html", form=form)
 
-
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
@@ -48,12 +46,10 @@ def login():
 
     return render_template("auth/login_form.html", form=form)
 
-
 @auth_bp.route("/logout")
 def logout():
     logout_user()
     return redirect(url_for("public.index"))
-
 
 @auth_bp.route("/recover-password/", methods=["GET", "POST"])
 def show_recover_password_form():
@@ -75,18 +71,24 @@ def show_recover_password_form():
 
     return render_template("auth/recover_password_form.html", form=form)
 
-
 @auth_bp.route("/reset-password/", methods=["GET", "POST"])
 def reset_password_form():
     token = request.args.get("token")
-    user_id = authentication_service.verify_reset_token(token)
-    if not user_id:
+    user = authentication_service.verify_reset_token(token)
+    if not user:
         return redirect(url_for("auth.login"))
 
     form = ResetPasswordForm()
+
     if form.validate_on_submit():
-        authentication_service.update_password(current_user.id, **form.data)
+        new_password_value = form.password.data
+        
+        if user.check_password(new_password_value):
+            error_message = "New password can not be the same as the last one."
+            return render_template("auth/reset_password_form.html", form=form, token=token, error=error_message)
+        
+        authentication_service.update_password(user.id, new_password_value)
         db.session.commit()
-        return redirect(url_for("auth/login_form.html"))
+        return redirect(url_for("auth.login"))
 
     return render_template("auth/reset_password_form.html", form=form)

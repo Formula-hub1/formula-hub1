@@ -60,7 +60,7 @@ def test_upload_dataset_formula_csv():
         driver.find_element(By.NAME, "title").send_keys("Selenium CSV Formula")
         driver.find_element(By.NAME, "desc").send_keys("Testing CSV upload with current forms")
 
-        # 2. Publication Type (Tu HTML tiene este campo, no race_type)
+        # 2. Publication Type
         try:
             select_elem = driver.find_element(By.NAME, "publication_type")
             Select(select_elem).select_by_value("article")
@@ -81,10 +81,11 @@ def test_upload_dataset_formula_csv():
 
         try:
             file_input = driver.find_element(By.XPATH, "//input[@type='file']")
-
             driver.execute_script("arguments[0].style.display = 'block';", file_input)
             file_input.send_keys(csv_path)
             print("✅ Enviado al Input File del Formulario.")
+
+            time.sleep(3)
 
         except Exception as e:
             print(f"❌ No se pudo enviar al input del formulario: {e}")
