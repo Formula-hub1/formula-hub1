@@ -75,6 +75,7 @@ def show_recover_password_form():
         return render_template("auth/recover_password_form.html", form=form, error=f"Error sending email: {exc}")
 
 
+
 @auth_bp.route("/reset-password/", methods=["GET", "POST"])
 def reset_password_form():
     token = request.args.get("token")

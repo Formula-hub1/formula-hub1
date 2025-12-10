@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, PasswordField, StringField, SubmitField
-from wtforms.validators import DataRequired, Email, Length, EqualTo
+from wtforms.validators import DataRequired, Email, EqualTo, Length
 
 
 class SignupForm(FlaskForm):
@@ -25,7 +25,7 @@ class RecoverPasswordForm(FlaskForm):
 
 class ResetPasswordForm(FlaskForm):
     password = PasswordField("Password", validators=[DataRequired()])
-    new_password = PasswordField("Confirm password", validators=[
-        DataRequired(), 
-        EqualTo("password", message="Passwords must match")])
+    new_password = PasswordField(
+        "Confirm password", validators=[DataRequired(), EqualTo("password", message="Passwords must match")]
+    )
     submit = SubmitField("Reset")
