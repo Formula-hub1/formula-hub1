@@ -1,0 +1,20 @@
+{% extends "base_template.html" %}
+
+{% block content %}
+<h1>Upload dataset (ZIP or GitHub)</h1>
+
+<form method="post" action="{{ url_for('uploader.preview_upload') }}" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label>Upload ZIP</label>
+        <input type="file" name="file" class="form-control"/>
+    </div>
+
+    <div class="mb-3">
+        <label>GitHub URL</label>
+        <input type="text" name="url" class="form-control" placeholder="https://github.com/..."/>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Preview Upload</button>
+</form>
+
+{% endblock %}
