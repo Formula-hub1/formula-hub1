@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
-from flask import json
 
 from app import db
 from app.modules.auth.models import User

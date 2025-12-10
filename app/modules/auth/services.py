@@ -1,6 +1,6 @@
 import os
-import itsdangerous
 
+import itsdangerous
 from flask import current_app, url_for
 from flask_login import current_user, login_user
 from flask_mail import Message
@@ -12,6 +12,7 @@ from app.modules.profile.models import UserProfile
 from app.modules.profile.repositories import UserProfileRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
+
 
 class AuthenticationService(BaseService):
 
@@ -119,13 +120,15 @@ class AuthenticationService(BaseService):
         recover_url = url_for("auth.reset_password_form", token=reset_token, _external=True)
 
         msg = Message(
-            subject = "Password recovery - Formula Hub",
+            subject="Password recovery - Formula Hub",
             recipients=[email],
-            body = ("Dear user\n\n"
+            body=(
+                "Dear user\n\n"
                 "There has been a request to reset your Formula Hub account password.\n\n"
                 f"Reset your password clicking the following link: {recover_url}\n\n"
-                "If you did not request a password reset, ignore this email.")
-            )
+                "If you did not request a password reset, ignore this email."
+            ),
+        )
 
         mail.send(msg)
 
