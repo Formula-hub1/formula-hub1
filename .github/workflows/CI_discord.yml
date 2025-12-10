@@ -1,0 +1,22 @@
+name: 📢 Discord Notification - Issues
+
+on:
+  issues:
+    types: [opened, closed, reopened]
+
+jobs:
+  notify-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord Notification
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_url: ${{ secrets.DISCORD_ISSUES_WEBHOOK }}
+          username: "GitHub Issues"
+          # El color cambia dinámicamente: Verde si se abre, Rojo si se cierra
+          color: ${{ github.event.action == 'opened' && '#42f560' || '#f54242' }}
+          message: |
+            📝 **Issue ${{ github.event.action }}**
+            **Título:** ${{ github.event.issue.title }}
+            **Por:** ${{ github.event.issue.user.login }}
+            [Ver en GitHub](${{ github.event.issue.html_url }})
