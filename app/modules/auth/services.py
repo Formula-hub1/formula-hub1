@@ -1,11 +1,5 @@
 import os
 import itsdangerous
-import base64
-from email.mime.text import MIMEText
-
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
 
 from flask import current_app, url_for
 from flask_login import current_user, login_user
@@ -19,34 +13,6 @@ from app.modules.profile.repositories import UserProfileRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
 
-
-def _create_and_send_message_oauth(recipient_email: str, subject: str, body_html: str):
-    
-    TOKEN_FILE = current_app.config['GMAIL_OAUTH_TOKEN_PATH']
-    SENDER_EMAIL = current_app.config['GMAIL_SENDER_EMAIL']
-    SCOPES = ['https://mail.google.com/'] 
-
-    try:
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
-    except FileNotFoundError:
-        raise Exception(f"OAuth Token not found in {TOKEN_FILE}.")
-
-    if creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-    
-    service = build('gmail', 'v1', credentials=creds)
-    
-    message = MIMEText(body_html, 'html')
-    message['to'] = recipient_email
-    message['from'] = SENDER_EMAIL
-    message['subject'] = subject
-    
-    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
-    
-    service.users().messages().send(userId='me', body={'raw': raw_message}).execute()
-    return True
-
-
 class AuthenticationService(BaseService):
 
     def __init__(self):
@@ -56,7 +22,6 @@ class AuthenticationService(BaseService):
 
     def _get_serializer(self):
         return itsdangerous.URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
-
 
     def login(self, email, password, remember=True):
         user = self.repository.get_by_email(email)

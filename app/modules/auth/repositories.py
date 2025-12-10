@@ -22,3 +22,4 @@ class UserRepository(BaseRepository):
 
     def get_by_id(self, id: int):
         return self.model.query.get(id)
+        
