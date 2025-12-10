@@ -6,7 +6,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from webdriver_manager.firefox import GeckoDriverManager
 
-
 REPO_ZIP_URL = "https://github.com/Universal-Variability-Language/uvl-parser/"
 
 
