@@ -15,7 +15,7 @@ from app.modules.featuremodel.models import FeatureModel, FMMetaData
 from app.modules.hubfile.models import Hubfile
 from core.services.BaseService import BaseService
 
-VALID_EXTENSIONS = ('.uvl', '.csv')
+VALID_EXTENSIONS = (".uvl", ".csv")
 
 
 def calculate_checksum_and_size_bytes(content_bytes):
@@ -29,12 +29,12 @@ def _normalize_github_url(url: str) -> str:
     Transforma una URL de repositorio de GitHub a un enlace de descarga ZIP.
     Añade /archive/refs/heads/main.zip al final si es un repo base.
     """
-    normalized_url = url.rstrip('/')
-    if normalized_url.endswith(('.zip', '.tar.gz', '.tar.bz2')):
+    normalized_url = url.rstrip("/")
+    if normalized_url.endswith((".zip", ".tar.gz", ".tar.bz2")):
         return normalized_url
 
-    if 'github.com' in normalized_url and normalized_url.count('/') >= 4:
-        return normalized_url + '/archive/refs/heads/main.zip'
+    if "github.com" in normalized_url and normalized_url.count("/") >= 4:
+        return normalized_url + "/archive/refs/heads/main.zip"
 
     return url
 
