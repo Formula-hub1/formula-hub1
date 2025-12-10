@@ -15,11 +15,28 @@ from app.modules.featuremodel.models import FeatureModel, FMMetaData
 from app.modules.hubfile.models import Hubfile
 from core.services.BaseService import BaseService
 
+VALID_EXTENSIONS = ('.uvl', '.csv')
+
 
 def calculate_checksum_and_size_bytes(content_bytes):
     checksum = hashlib.sha256(content_bytes).hexdigest()
     size = len(content_bytes)
     return checksum, size
+
+
+def _normalize_github_url(url: str) -> str:
+    """
+    Transforma una URL de repositorio de GitHub a un enlace de descarga ZIP.
+    Añade /archive/refs/heads/main.zip al final si es un repo base.
+    """
+    normalized_url = url.rstrip('/')
+    if normalized_url.endswith(('.zip', '.tar.gz', '.tar.bz2')):
+        return normalized_url
+
+    if 'github.com' in normalized_url and normalized_url.count('/') >= 4:
+        return normalized_url + '/archive/refs/heads/main.zip'
+
+    return url
 
 
 class UploaderService(BaseService):
@@ -35,6 +52,7 @@ class UploaderService(BaseService):
             return self._prepare_zip_preview(file.read(), file.filename)
 
         if github_url:
+            github_url = _normalize_github_url(github_url)
             r = requests.get(github_url)
             if r.status_code != 200:
                 raise ValueError("GitHub URL no descargable")
@@ -47,7 +65,7 @@ class UploaderService(BaseService):
 
         files = []
         for name in zf.namelist():
-            if name.endswith(".uvl"):
+            if name.endswith(VALID_EXTENSIONS):
                 content = zf.read(name)
                 files.append(
                     {
@@ -106,7 +124,7 @@ class UploaderService(BaseService):
             db.session.add(fm_meta)
             db.session.commit()
 
-            fm = FeatureModel(data_set_id=dataset.id, fm_meta_data_id=fm_meta.id)
+            fm = FeatureModel(dataset_id=dataset.id, fm_meta_data_id=fm_meta.id)
             db.session.add(fm)
             db.session.commit()
 
