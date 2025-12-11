@@ -4,10 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 def uploads_folder_name():
     return os.getenv("UPLOADS_DIR", "uploads")
-
 
 def get_app_version():
     version_file_path = os.path.join(os.getenv("WORKING_DIR", ""), ".version")
@@ -17,14 +15,11 @@ def get_app_version():
     except FileNotFoundError:
         return "unknown"
 
-
 def is_develop():
     return os.getenv("FLASK_ENV") == "development"
 
-
 def is_production():
     return os.getenv("FLASK_ENV") == "production"
-
 
 def config_mail(app):
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -32,9 +27,8 @@ def config_mail(app):
     app.config['MAIL_USERNAME'] = 'formulahubmail@gmail.com'
     app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
     app.config['MAIL_USE_TLS'] = False
-    app.config["MAIL_USE_SSL"] = True 
+    app.config["MAIL_USE_SSL"] = True
     app.config['MAIL_DEFAULT_SENDER'] = 'formulahubmail@gmail.com'
-        
 
 def secret_key(app):
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")

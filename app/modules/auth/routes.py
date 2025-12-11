@@ -82,11 +82,11 @@ def reset_password_form():
 
     if form.validate_on_submit():
         new_password_value = form.password.data
-        
+
         if user.check_password(new_password_value):
             error_message = "New password can not be the same as the last one."
             return render_template("auth/reset_password_form.html", form=form, token=token, error=error_message)
-        
+
         authentication_service.update_password(user.id, new_password_value)
         db.session.commit()
         return redirect(url_for("auth.login"))

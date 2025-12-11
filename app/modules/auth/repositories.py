@@ -1,7 +1,6 @@
 from app.modules.auth.models import User
 from core.repositories.BaseRepository import BaseRepository
 
-
 class UserRepository(BaseRepository):
     def __init__(self):
         super().__init__(User)
@@ -22,4 +21,4 @@ class UserRepository(BaseRepository):
 
     def get_by_id(self, id: int):
         return self.model.query.get(id)
-        
+

@@ -25,5 +25,7 @@ class RecoverPasswordForm(FlaskForm):
 
 class ResetPasswordForm(FlaskForm):
     password = PasswordField("Password", validators=[DataRequired()])
-    new_password = PasswordField("Confirm password", validators=[DataRequired(), EqualTo("password", message="Passwords must match")])
+    new_password = PasswordField("Confirm password", validators=[
+        DataRequired(), 
+        EqualTo("password", message="Passwords must match")])
     submit = SubmitField("Reset")

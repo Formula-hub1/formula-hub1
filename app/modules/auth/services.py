@@ -16,15 +16,15 @@ from core.services.BaseService import BaseService
 class AuthenticationService(BaseService):
 
     def __init__(self):
-        self.user_repository = UserRepository()
+        self.user_repository=UserRepository()
         super().__init__(self.user_repository)
-        self.user_profile_repository = UserProfileRepository()
+        self.user_profile_repository=UserProfileRepository()
 
     def _get_serializer(self):
         return itsdangerous.URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
 
     def login(self, email, password, remember=True):
-        user = self.repository.get_by_email(email)
+        user=self.repository.get_by_email(email)
         if user is not None and user.check_password(password):
             login_user(user, remember=remember)
             return True
@@ -35,10 +35,10 @@ class AuthenticationService(BaseService):
 
     def create_with_profile(self, **kwargs):
         try:
-            email = kwargs.pop("email", None)
-            password = kwargs.pop("password", None)
-            name = kwargs.pop("name", None)
-            surname = kwargs.pop("surname", None)
+            email=kwargs.pop("email", None)
+            password=kwargs.pop("password", None)
+            name=kwargs.pop("name", None)
+            surname=kwargs.pop("surname", None)
 
             if not email:
                 raise ValueError("Email is required.")
@@ -49,15 +49,15 @@ class AuthenticationService(BaseService):
             if not surname:
                 raise ValueError("Surname is required.")
 
-            user_data = {"email": email, "password": password}
+            user_data={"email": email, "password": password}
 
-            profile_data = {
+            profile_data={
                 "name": name,
                 "surname": surname,
             }
 
-            user = self.create(commit=False, **user_data)
-            profile_data["user_id"] = user.id
+            user=self.create(commit=False, **user_data)
+            profile_data["user_id"]=user.id
             self.user_profile_repository.create(**profile_data)
             self.repository.session.commit()
         except Exception as exc:
@@ -67,7 +67,7 @@ class AuthenticationService(BaseService):
 
     def update_profile(self, user_profile_id, form):
         if form.validate():
-            updated_instance = self.update(user_profile_id, **form.data)
+            updated_instance=self.update(user_profile_id, **form.data)
             return updated_instance, None
 
         return None, form.errors
@@ -90,8 +90,8 @@ class AuthenticationService(BaseService):
 
     def verify_reset_token(self, token):
         try:
-            data = self._get_serializer().loads(token, max_age=3600)
-            user_id = data.get("user_id")
+            data=self._get_serializer().loads(token, max_age=3600)
+            user_id=data.get("user_id")
 
             if not data or not user_id:
                 return None
@@ -104,24 +104,24 @@ class AuthenticationService(BaseService):
             return None
 
     def update_password(self, user_id, password):
-        user = self.user_repository.get_by_id(user_id)
+        user=self.user_repository.get_by_id(user_id)
         if user:
             user.set_password(password)
             self.repository.session.commit()
 
     def send_email(self, **kwargs) -> str:
-        email = kwargs.get("email")
-        user = self.user_repository.get_by_email(email)
+        email=kwargs.get("email")
+        user=self.user_repository.get_by_email(email)
         if user is None:
             return "Email should be associated to an existing account"
 
-        reset_token = self.generate_reset_token(user.id)
-        recover_url = url_for("auth.reset_password_form", token=reset_token, _external=True)
+        reset_token=self.generate_reset_token(user.id)
+        recover_url=url_for("auth.reset_password_form", token=reset_token, _external=True)
 
-        msg = Message(
-            subject = "Password recovery - Formula Hub",
+        msg=Message(
+            subject="Password recovery - Formula Hub",
             recipients=[email],
-            body = ("Dear user\n\n"
+            body=("Dear user\n\n"
                 "There has been a request to reset your Formula Hub account password.\n\n"
                 f"Reset your password clicking the following link: {recover_url}\n\n"
                 "If you did not request a password reset, ignore this email.")
