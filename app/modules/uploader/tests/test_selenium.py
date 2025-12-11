@@ -1,10 +1,10 @@
 import time
 import unittest
 
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.service import Service as FirefoxService
-from webdriver_manager.firefox import GeckoDriverManager
+
+from core.environment.host import get_host_for_selenium_testing
+from core.selenium.common import close_driver, initialize_driver
 
 REPO_ZIP_URL = "https://github.com/Universal-Variability-Language/uvl-parser/"
 
@@ -12,13 +12,16 @@ REPO_ZIP_URL = "https://github.com/Universal-Variability-Language/uvl-parser/"
 class TestUploader(unittest.TestCase):
 
     def setUp(self):
-        self.driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))
+        self.driver = initialize_driver()
+
         self.driver.implicitly_wait(10)
-        self.base_url = "http://localhost:5000"
+
+        self.base_url = get_host_for_selenium_testing()
+
         self.driver.get(self.base_url)
 
     def tearDown(self):
-        self.driver.quit()
+        close_driver(self.driver)
 
     def test_uploader(self):
         self.driver.get(self.base_url + "/")
