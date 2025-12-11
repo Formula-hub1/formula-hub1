@@ -17,6 +17,7 @@ jobs:
           color: ${{ github.event.action == 'opened' && '#42f560' || '#f54242' }}
           message: |
             📝 **Issue ${{ github.event.action }}**
+
             **Título:** ${{ github.event.issue.title }}
             **Por:** ${{ github.event.issue.user.login }}
             [Ver en GitHub](${{ github.event.issue.html_url }})
