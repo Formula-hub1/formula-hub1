@@ -119,11 +119,10 @@ class AuthenticationService(BaseService):
         reset_token=self.generate_reset_token(user.id)
         recover_url=url_for("auth.reset_password_form", token=reset_token, _external=True)
 
-        msg = Message(
+        msg=Message(
             subject="Password recovery - Formula Hub",
             recipients=[email],
-            body=(
-                "Dear user\n\n"
+            body=("Dear user\n\n"
                 "There has been a request to reset your Formula Hub account password.\n\n"
                 f"Reset your password clicking the following link: {recover_url}\n\n"
                 "If you did not request a password reset, ignore this email."
