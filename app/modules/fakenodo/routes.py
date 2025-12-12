@@ -1,6 +1,7 @@
-from flask import jsonify, make_response, request
 import uuid
 from datetime import datetime
+
+from flask import jsonify, make_response, request
 
 from app.modules.fakenodo import fakenodo_bp
 
@@ -34,7 +35,7 @@ def create_fakenodo():
         "files_updated": False,
         "published": False,
         "created": datetime.now().isoformat(),
-        "latest_version": depositionId
+        "latest_version": depositionId,
     }
     if request.get_json(silent=True):
         FAKE_ZENODO_RECORDS[depositionId]["metadata_updated"] = True
@@ -42,9 +43,7 @@ def create_fakenodo():
         "status": "success",
         "message": "FakeNodo created successfully!",
         "id": depositionId,
-        "links": {
-            "self": f"http://localhost/fakenodo/api/{depositionId}"
-        }
+        "links": {"self": f"http://localhost/fakenodo/api/{depositionId}"},
     }
     return make_response(jsonify(response), 201)
 
@@ -130,6 +129,6 @@ def get_deposition_fakenodo(depositionId):
             }
             for dep_id, data in FAKE_ZENODO_RECORDS.items()
             if data["record_id"] == record["record_id"] and data["published"]
-        ]
+        ],
     }
     return make_response(jsonify(response), 200)
