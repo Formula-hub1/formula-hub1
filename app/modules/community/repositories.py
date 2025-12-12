@@ -37,11 +37,7 @@ class CommunityRepository(BaseRepository):
 
     def get_user_communities(self, user_id: int) -> List[Community]:
         """Get all communities where user is a member"""
-        return (
-            self.model.query.join(CommunityMembership)
-            .filter(CommunityMembership.user_id == user_id)
-            .all()
-        )
+        return self.model.query.join(CommunityMembership).filter(CommunityMembership.user_id == user_id).all()
 
     def search(self, query: str) -> List[Community]:
         """Search communities by name or description"""
@@ -130,9 +126,7 @@ class CommunityMembershipRepository(BaseRepository):
     def __init__(self):
         super().__init__(CommunityMembership)
 
-    def add_member(
-        self, community_id: int, user_id: int, role: str = "member"
-    ) -> Optional[CommunityMembership]:
+    def add_member(self, community_id: int, user_id: int, role: str = "member") -> Optional[CommunityMembership]:
         """
         Add a user to a community
 
@@ -161,9 +155,7 @@ class CommunityMembershipRepository(BaseRepository):
 
     def remove_member(self, community_id: int, user_id: int) -> bool:
         """Remove a member from a community"""
-        membership = self.model.query.filter_by(
-            community_id=community_id, user_id=user_id
-        ).first()
+        membership = self.model.query.filter_by(community_id=community_id, user_id=user_id).first()
 
         if not membership:
             return False
@@ -174,9 +166,7 @@ class CommunityMembershipRepository(BaseRepository):
 
     def update_role(self, community_id: int, user_id: int, new_role: str) -> bool:
         """Update a member's role"""
-        membership = self.model.query.filter_by(
-            community_id=community_id, user_id=user_id
-        ).first()
+        membership = self.model.query.filter_by(community_id=community_id, user_id=user_id).first()
 
         if not membership:
             return False
@@ -187,25 +177,19 @@ class CommunityMembershipRepository(BaseRepository):
 
     def is_member(self, community_id: int, user_id: int) -> bool:
         """Check if user is a member of the community"""
-        membership = self.model.query.filter_by(
-            user_id=user_id, community_id=community_id
-        ).first()
+        membership = self.model.query.filter_by(user_id=user_id, community_id=community_id).first()
         return membership is not None
 
     def is_curator_or_owner(self, community_id: int, user_id: int) -> bool:
         """Check if user is a curator or owner of the community"""
-        membership = self.model.query.filter_by(
-            user_id=user_id, community_id=community_id
-        ).first()
+        membership = self.model.query.filter_by(user_id=user_id, community_id=community_id).first()
 
         if not membership:
             return False
 
         return membership.role in [CommunityRole.CURATOR, CommunityRole.OWNER]
 
-    def get_community_members(
-        self, community_id: int, role: Optional[str] = None
-    ) -> List[CommunityMembership]:
+    def get_community_members(self, community_id: int, role: Optional[str] = None) -> List[CommunityMembership]:
         """Get all members of a community, optionally filtered by role"""
         query = self.model.query.filter_by(community_id=community_id)
 
@@ -245,9 +229,7 @@ class DatasetCommunitySubmissionRepository(BaseRepository):
             DatasetCommunitySubmission instance or None if already exists
         """
         # Check if submission already exists
-        existing = self.model.query.filter_by(
-            dataset_id=dataset_id, community_id=community_id
-        ).first()
+        existing = self.model.query.filter_by(dataset_id=dataset_id, community_id=community_id).first()
 
         if existing:
             return None
@@ -265,9 +247,7 @@ class DatasetCommunitySubmissionRepository(BaseRepository):
 
         return submission
 
-    def create_submission(
-        self, dataset_id: int, community_id: int
-    ) -> Optional[DatasetCommunitySubmission]:
+    def create_submission(self, dataset_id: int, community_id: int) -> Optional[DatasetCommunitySubmission]:
         """
         Create a new dataset submission to a community (legacy method)
         """
@@ -334,19 +314,13 @@ class DatasetCommunitySubmissionRepository(BaseRepository):
 
     def get_pending_submissions(self, community_id: int) -> List[DatasetCommunitySubmission]:
         """Get all pending submissions for a community"""
-        return self.model.query.filter_by(
-            community_id=community_id, status=SubmissionStatus.PENDING
-        ).all()
+        return self.model.query.filter_by(community_id=community_id, status=SubmissionStatus.PENDING).all()
 
     def get_approved_submissions(self, community_id: int) -> List[DatasetCommunitySubmission]:
         """Get all approved submissions for a community"""
-        return self.model.query.filter_by(
-            community_id=community_id, status=SubmissionStatus.ACCEPTED
-        ).all()
+        return self.model.query.filter_by(community_id=community_id, status=SubmissionStatus.ACCEPTED).all()
 
-    def get_user_submissions(
-        self, user_id: int, status: Optional[str] = None
-    ) -> List[DatasetCommunitySubmission]:
+    def get_user_submissions(self, user_id: int, status: Optional[str] = None) -> List[DatasetCommunitySubmission]:
         """Get all submissions by a user, optionally filtered by status"""
         query = self.model.query.filter_by(submitter_id=user_id)
 

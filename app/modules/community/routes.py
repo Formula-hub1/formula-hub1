@@ -193,8 +193,7 @@ def add_member(slug):
     available_users = User.query.filter(User.id.notin_(current_member_ids)).all()
 
     form.user_id.choices = [
-        (u.id, f"{u.profile.name} {u.profile.surname} ({u.email})" if u.profile else u.email)
-        for u in available_users
+        (u.id, f"{u.profile.name} {u.profile.surname} ({u.email})" if u.profile else u.email) for u in available_users
     ]
 
     if form.validate_on_submit():
@@ -252,8 +251,7 @@ def submit_dataset(slug):
 
     # Llenar el dropdown con los datasets del usuario
     form.dataset_id.choices = [
-        (ds.id, ds.ds_meta_data.title if ds.ds_meta_data else f"Dataset {ds.id}")
-        for ds in user_datasets
+        (ds.id, ds.ds_meta_data.title if ds.ds_meta_data else f"Dataset {ds.id}") for ds in user_datasets
     ]
 
     if form.validate_on_submit():
