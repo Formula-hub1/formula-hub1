@@ -1,0 +1,66 @@
+{% extends "base_template.html" %}
+
+{% block title %}Buscar comunidades{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{{ url_for('community.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i data-feather="arrow-left" class="center-button-icon"></i>
+            Volver
+        </a>
+    </div>
+</div>
+
+<h1 class="h2 mb-4"><b>Buscar</b> comunidades</h1>
+
+<div class="row mb-4">
+    <div class="col-xl-6 col-lg-8 col-md-10">
+        <form action="{{ url_for('community.search') }}" method="GET" class="d-flex">
+            <input type="text" name="q" class="form-control me-2" placeholder="Buscar comunidades..." value="{{ query }}">
+            <button type="submit" class="btn btn-primary">
+                <i data-feather="search"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+{% if query %}
+<p class="text-muted mb-4">Resultados para: <strong>"{{ query }}"</strong></p>
+{% endif %}
+
+{% if communities %}
+<div class="row">
+    {% for community in communities %}
+    <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                {% if community.logo_url %}
+                <img src="{{ community.logo_url }}" alt="{{ community.name }}" class="mb-3" style="max-height: 60px; max-width: 100%;">
+                {% endif %}
+                <h5 class="card-title">{{ community.name }}</h5>
+                <p class="card-text text-muted">
+                    {{ community.description[:150] if community.description else '' }}{% if community.description and community.description|length > 150 %}...{% endif %}
+                </p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{{ url_for('community.detail', slug=community.slug) }}" class="btn btn-outline-primary btn-sm">
+                    Ver comunidad
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% elif query %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <img src="{{ url_for('static', filename='img/items/not_found.svg') }}" alt="No results" style="max-width: 200px;" class="mb-4">
+        <h4>No se encontraron comunidades</h4>
+        <p class="text-muted">Intenta con otros términos de búsqueda.</p>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

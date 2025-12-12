@@ -3,7 +3,7 @@ Community forms for Flask-WTF
 """
 
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, HiddenField, IntegerField, SelectField, StringField, TextAreaField
+from wtforms import BooleanField, HiddenField, SelectField, StringField, TextAreaField
 from wtforms.validators import URL, DataRequired, Length, Optional, Regexp
 
 
@@ -55,10 +55,10 @@ class CommunityForm(FlaskForm):
 class MemberForm(FlaskForm):
     """Form for adding members to a community"""
 
-    user_id = IntegerField(
-        "ID del Usuario",
-        validators=[DataRequired(message="El ID del usuario es obligatorio")],
-        render_kw={"placeholder": "ID del usuario"},
+    user_id = SelectField(
+        "Usuario",
+        coerce=int,
+        validators=[DataRequired(message="Debes seleccionar un usuario")],
     )
 
     role = SelectField(
@@ -72,10 +72,10 @@ class MemberForm(FlaskForm):
 class SubmitDatasetForm(FlaskForm):
     """Form for submitting a dataset to a community"""
 
-    dataset_id = IntegerField(
-        "ID del Dataset",
-        validators=[DataRequired(message="El ID del dataset es obligatorio")],
-        render_kw={"placeholder": "ID del dataset"},
+    dataset_id = SelectField(
+        "Selecciona un dataset",
+        coerce=int,
+        validators=[DataRequired(message="Debes seleccionar un dataset")],
     )
 
     message = TextAreaField(

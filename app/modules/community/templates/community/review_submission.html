@@ -1,0 +1,98 @@
+{% extends "base_template.html" %}
+
+{% block title %}Revisar propuesta{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{{ url_for('community.submissions', slug=submission.community.slug) }}" class="btn btn-outline-secondary btn-sm">
+            <i data-feather="arrow-left" class="center-button-icon"></i>
+            Volver a propuestas
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-8 col-lg-10 col-md-12">
+        
+        <h1 class="h2 mb-4"><b>Revisar</b> propuesta</h1>
+
+        <!-- Dataset Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Información del dataset</h5>
+            </div>
+            <div class="card-body">
+                <h4>{{ submission.dataset.ds_meta_data.title if submission.dataset.ds_meta_data else 'Sin título' }}</h4>
+                <p class="text-muted">{{ submission.dataset.ds_meta_data.description if submission.dataset.ds_meta_data else '' }}</p>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Propuesto por:</strong></p>
+                        <p>
+                            {% if submission.submitter.profile %}
+                            {{ submission.submitter.profile.name }} {{ submission.submitter.profile.surname }}
+                            {% else %}
+                            {{ submission.submitter.email }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Fecha de propuesta:</strong></p>
+                        <p>{{ submission.submitted_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                </div>
+                
+                {% if submission.message %}
+                <hr>
+                <p class="mb-1"><strong>Mensaje del solicitante:</strong></p>
+                <p class="text-muted">{{ submission.message }}</p>
+                {% endif %}
+                
+                {% if submission.dataset.ds_meta_data and submission.dataset.ds_meta_data.dataset_doi %}
+                <a href="/doi/{{ submission.dataset.ds_meta_data.dataset_doi }}" target="_blank" class="btn btn-outline-primary btn-sm mt-2">
+                    <i data-feather="external-link" class="center-button-icon"></i>
+                    Ver dataset completo
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Review Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Decisión</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('community.review_submission', submission_id=submission.id) }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-4">
+                        {{ form.feedback.label(class="form-label") }}
+                        {{ form.feedback(class="form-control") }}
+                        <small class="text-muted">Obligatorio si rechazas la propuesta.</small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success" onclick="document.getElementById('action').value='approve';">
+                            <i data-feather="check" class="center-button-icon"></i>
+                            Aceptar
+                        </button>
+                        <button type="submit" class="btn btn-danger" onclick="document.getElementById('action').value='reject';">
+                            <i data-feather="x" class="center-button-icon"></i>
+                            Rechazar
+                        </button>
+                    </div>
+                    
+                    <input type="hidden" name="action" id="action" value="">
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base_template.html" %}
+
+{% block title %}Comunidades{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col-6">
+        <h1 class="h2 mb-0"><b>Comunidades</b></h1>
+    </div>
+    <div class="col-6 text-end">
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('community.create') }}" class="btn btn-primary">
+            <i data-feather="plus" class="center-button-icon"></i>
+            Crear comunidad
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <form action="{{ url_for('community.search') }}" method="GET" class="d-flex">
+            <input type="text" name="q" class="form-control me-2" placeholder="Buscar comunidades...">
+            <button type="submit" class="btn btn-outline-primary">
+                <i data-feather="search"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+{% if communities %}
+<div class="row">
+    {% for community in communities %}
+    <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                {% if community.logo_url %}
+                <img src="{{ community.logo_url }}" alt="{{ community.name }}" class="mb-3" style="max-height: 60px; max-width: 100%;">
+                {% endif %}
+                <h5 class="card-title">{{ community.name }}</h5>
+                <p class="card-text text-muted">
+                    {{ community.description[:150] if community.description else '' }}{% if community.description and community.description|length > 150 %}...{% endif %}
+                </p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{{ url_for('community.detail', slug=community.slug) }}" class="btn btn-outline-primary btn-sm">
+                    Ver comunidad
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <img src="{{ url_for('static', filename='img/items/not_found.svg') }}" alt="No communities" style="max-width: 200px;" class="mb-4">
+                <h4>No hay comunidades disponibles</h4>
+                <p class="text-muted">Sé el primero en crear una comunidad.</p>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('community.create') }}" class="btn btn-primary">
+                    <i data-feather="plus" class="center-button-icon"></i>
+                    Crear comunidad
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
