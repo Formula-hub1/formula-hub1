@@ -10,7 +10,6 @@ from app.modules.profile.models import UserProfile
 
 # ===================================================================
 #  1. TESTS DEL MODELO (INTEGRACIÓN CON DB)
-#  Estos funcionaban bien, verifican la integridad SQL y relaciones.
 # ===================================================================
 
 
@@ -95,8 +94,6 @@ class TestCommentModel:
 
 # ===================================================================
 #  2. TESTS DE RUTAS (UNITARIOS CON MOCKS)
-#  Aquí aplicamos la técnica de tu ejemplo 'Recommender'.
-#  Simulamos los servicios para NO tocar la DB y evitar bloqueos.
 # ===================================================================
 
 
@@ -105,13 +102,9 @@ class TestCommentRoutes:
     @pytest.fixture(autouse=True)
     def setup_client(self, test_client):
         self.client = test_client
-        # No hacemos db.create_all() aquí porque vamos a mockear todo.
-        # Simulamos un usuario logueado en la sesión para saltar @login_required
         with self.client.session_transaction() as sess:
             sess["_user_id"] = "1"  # ID falso
             sess["_fresh"] = True
-
-    # --- Helpers para Mocks ---
 
     def _mock_user(self, mock_auth_cls):
         """Simula el servicio de autenticación."""
@@ -142,27 +135,22 @@ class TestCommentRoutes:
         Prueba POST /datasets/<id>/comments con éxito.
         Verifica que se llama a comment_service.create y se redirige.
         """
-        # 1. Preparar Mocks
         self._mock_user(mock_auth_cls)
         mock_ds = self._mock_dataset(mock_dataset_service)
 
-        # 2. Ejecutar
         response = self.client.post(
             "/datasets/100/comments", data={"content": "Mocked Service Comment"}, follow_redirects=False
         )
 
-        # 3. Validar Comportamiento
         assert response.status_code == 302
         assert f"/doi/{mock_ds.ds_meta_data.dataset_doi}" in response.location
 
-        # Verificar que el servicio fue llamado con los datos correctos
         mock_comment_service.create.assert_called_once_with(
             content="Mocked Service Comment", dataset_id=100, parent_id=None, user_id=1
         )
 
     def test_add_comment_route_empty_content(self):
         """Prueba validación: debe dar 400 sin llamar a servicios."""
-        # No necesitamos mocks aquí porque la validación ocurre antes
         response = self.client.post(
             "/datasets/100/comments",
             data={"content": "   "},
@@ -183,7 +171,6 @@ class TestCommentRoutes:
 
         assert response.status_code == 302
 
-        # Verificar que se pasó el parent_id al servicio
         mock_comment_service.create.assert_called_once()
         call_args = mock_comment_service.create.call_args[1]
         assert call_args["content"] == "This is a reply"
@@ -196,7 +183,6 @@ class TestCommentRoutes:
         """Prueba ruta AJAX simulada."""
         self._mock_user(mock_auth_cls)
 
-        # Simulamos el renderizado del HTML
         mock_render.return_value = "<div>Mocked HTML</div>"
 
         response = self.client.post("/datasets/100/comments/ajax", data={"content": "AJAX Comment"})
@@ -206,13 +192,7 @@ class TestCommentRoutes:
         assert json_data["ok"] is True
         assert json_data["html"] == "<div>Mocked HTML</div>"
 
-        # Verificar creación
         mock_comment_service.create.assert_called_once()
-
-        # Verificar que se intentó renderizar la lista actualizada
-        # NOTA: En la ruta real, se hace una query a DB para obtener 'comments'.
-        # Como estamos mockeando, la query real fallaría o devolvería vacío.
-        # En un test unitario estricto de controlador, asumimos que si llama a create y luego render, funciona.
 
     def test_add_comment_ajax_empty(self):
         """Prueba validación AJAX."""
@@ -224,11 +204,10 @@ class TestCommentRoutes:
         assert response.get_json()["ok"] is False
 
     @patch("app.modules.dataset.routes.render_template")
-    @patch("app.modules.dataset.routes.Comment")  # Mockeamos la clase Comment para interceptar .query
+    @patch("app.modules.dataset.routes.Comment")
     def test_comments_fragment_get(self, mock_comment_model, mock_render):
         """Prueba GET Fragment simulando la query de base de datos."""
 
-        # Simulamos: Comment.query.filter_by(...).all()
         mock_query = mock_comment_model.query.filter_by.return_value
         mock_query.all.return_value = ["MockComment1", "MockComment2"]
 
@@ -238,11 +217,9 @@ class TestCommentRoutes:
 
         assert response.status_code == 200
 
-        # Verificar que se filtró por parent_id=None (comentarios raíz)
         args, kwargs = mock_comment_model.query.filter_by.call_args
         assert kwargs["dataset_id"] == 100
         assert kwargs["parent_id"] is None
 
-        # Verificar que se pasó la lista mockeada al template
         render_args, render_kwargs = mock_render.call_args
         assert render_kwargs["comments"] == ["MockComment1", "MockComment2"]
