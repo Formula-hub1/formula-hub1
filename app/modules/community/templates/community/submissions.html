@@ -1,0 +1,76 @@
+{% extends "base_template.html" %}
+
+{% block title %}Propuestas - {{ community.name }}{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{{ url_for('community.detail', slug=community.slug) }}" class="btn btn-outline-secondary btn-sm">
+            <i data-feather="arrow-left" class="center-button-icon"></i>
+            Volver a {{ community.name }}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-10 col-lg-12">
+        
+        <h1 class="h2 mb-4"><b>Propuestas pendientes</b> - {{ community.name }}</h1>
+
+        {% if submissions %}
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Dataset</th>
+                                <th>Propuesto por</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for submission in submissions %}
+                            <tr>
+                                <td>
+                                    <strong>{{ submission.dataset.ds_meta_data.title if submission.dataset.ds_meta_data else 'Sin título' }}</strong>
+                                    {% if submission.message %}
+                                    <br><small class="text-muted">{{ submission.message[:50] }}...</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if submission.submitter.profile %}
+                                    {{ submission.submitter.profile.name }}
+                                    {% else %}
+                                    {{ submission.submitter.email }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ submission.submitted_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('community.review_submission', submission_id=submission.id) }}" class="btn btn-primary btn-sm">
+                                        Revisar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <img src="{{ url_for('static', filename='img/items/not_found.svg') }}" alt="No submissions" style="max-width: 200px;" class="mb-4">
+                <h4>No hay propuestas pendientes</h4>
+                <p class="text-muted">Todas las propuestas han sido revisadas.</p>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

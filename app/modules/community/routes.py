@@ -8,8 +8,7 @@ from flask_login import current_user, login_required
 from app.modules.community.forms import CommunityForm, MemberForm, ReviewSubmissionForm, SubmitDatasetForm
 from app.modules.community.services import community_service
 
-community_bp = Blueprint("community", __name__, url_prefix="/communities")
-
+community_bp = Blueprint("community", __name__, url_prefix="/communities", template_folder="templates")
 
 # ============================================================================
 # PUBLIC VIEWS
@@ -175,6 +174,8 @@ def members(slug):
 @login_required
 def add_member(slug):
     """Add member to community"""
+    from app.modules.auth.models import User
+
     community = community_service.get_community_by_slug(slug)
     if not community:
         flash("Comunidad no encontrada", "error")
@@ -186,6 +187,15 @@ def add_member(slug):
         return redirect(url_for("community.detail", slug=slug))
 
     form = MemberForm()
+
+    # Obtener usuarios que no son miembros de la comunidad
+    current_member_ids = [m.user_id for m in community.memberships]
+    available_users = User.query.filter(User.id.notin_(current_member_ids)).all()
+
+    form.user_id.choices = [
+        (u.id, f"{u.profile.name} {u.profile.surname} ({u.email})" if u.profile else u.email)
+        for u in available_users
+    ]
 
     if form.validate_on_submit():
         membership = community_service.add_member(community.id, form.user_id.data, form.role.data)
@@ -228,12 +238,23 @@ def remove_member(slug, user_id):
 @login_required
 def submit_dataset(slug):
     """Submit a dataset to the community"""
+    from app.modules.dataset.models import DataSet
+
     community = community_service.get_community_by_slug(slug)
     if not community:
         flash("Comunidad no encontrada", "error")
         return redirect(url_for("community.index"))
 
     form = SubmitDatasetForm()
+
+    # Obtener datasets del usuario actual
+    user_datasets = DataSet.query.filter_by(user_id=current_user.id).all()
+
+    # Llenar el dropdown con los datasets del usuario
+    form.dataset_id.choices = [
+        (ds.id, ds.ds_meta_data.title if ds.ds_meta_data else f"Dataset {ds.id}")
+        for ds in user_datasets
+    ]
 
     if form.validate_on_submit():
         submission = community_service.submit_dataset(
@@ -249,7 +270,7 @@ def submit_dataset(slug):
         else:
             flash("Error: Este dataset ya fue propuesto a esta comunidad.", "error")
 
-    return render_template("community/submit_dataset.html", form=form, community=community)
+    return render_template("community/submit_dataset.html", form=form, community=community, user_datasets=user_datasets)
 
 
 @community_bp.route("/<slug>/submissions")

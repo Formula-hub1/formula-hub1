@@ -12,3 +12,4 @@ def init_app(app: Flask):
     app.register_blueprint(community_bp)
 
     # Import models to ensure they're registered with SQLAlchemy
+    from app.modules.community import models  # noqa: F401
