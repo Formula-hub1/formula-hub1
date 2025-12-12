@@ -61,20 +61,12 @@ class CommunitySeeder(BaseSeeder):
 
             # Assign owner (alternate between users)
             owner = user1 if i % 2 == 0 else (user2 if user2 else user1)
-            membership = CommunityMembership(
-                community_id=community.id,
-                user_id=owner.id,
-                role=CommunityRole.OWNER
-            )
+            membership = CommunityMembership(community_id=community.id, user_id=owner.id, role=CommunityRole.OWNER)
             self.db.session.add(membership)
 
             # Add the other user as curator to first community
             if i == 0 and user2:
-                curator = CommunityMembership(
-                    community_id=community.id,
-                    user_id=user2.id,
-                    role=CommunityRole.CURATOR
-                )
+                curator = CommunityMembership(community_id=community.id, user_id=user2.id, role=CommunityRole.CURATOR)
                 self.db.session.add(curator)
 
             print(f"  Created community: {community.name}")
