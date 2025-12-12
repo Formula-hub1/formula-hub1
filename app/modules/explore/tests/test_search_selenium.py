@@ -74,11 +74,10 @@ def test_search_function_1_tags():
         reset_search_page(driver, host)
         open_advanced_filters(driver)
 
-        # Asumiendo ID="filter-tags"
         driver.find_element(By.ID, "filter-tags-nav").send_keys("racing")
         apply_filters(driver)
 
-        # Debe aparecer el dataset esperado (ej: Gran Premio...)
+        # Debe aparecer el dataset esperado
         assert_dataset_present(driver, "Gran Premio de España 2024")
 
         # CASO 2: NO VÁLIDO (colegio)
@@ -95,40 +94,37 @@ def test_search_function_1_tags():
         close_driver(driver)
 
 
-def test_search_function_2_date():
-    """Funcion 2: date --> 07/12/2025 (valido) ; 12/04/2023 (no valido)"""
+def test_search_function_2_author():
+    """Funcion 2: description --> Author 4(valido) ; Hola (no valido)"""
     driver = initialize_driver()
     host = get_host_for_selenium_testing()
 
     try:
         login_standard_user(driver, host)
 
-        # CASO 1: VÁLIDO (07/12/2025)
+        # CASO 1: VÁLIDO (Author 4)
         reset_search_page(driver, host)
         open_advanced_filters(driver)
 
-        date_input = driver.find_element(By.ID, "filter-date")
-        # Inyectamos fecha en formato ISO YYYY-MM-DD para input type="date"
-        driver.execute_script("arguments[0].value = '2025-12-07';", date_input)
-
+        driver.find_element(By.ID, "filter-author").send_keys("Author 4")
         apply_filters(driver)
-        assert_dataset_present(driver, "Gran Premio de España 2024")
 
-        # CASO 2: NO VÁLIDO (12/04/2023)
+        assert_dataset_present(driver, "Sample dataset 4")
+
+        # CASO 2: NO VÁLIDO (Author 14)
         reset_search_page(driver, host)
         open_advanced_filters(driver)
 
-        date_input = driver.find_element(By.ID, "filter-date")
-        driver.execute_script("arguments[0].value = '2023-04-12';", date_input)
-
+        driver.find_element(By.ID, "filter-author").send_keys("Author 14")
         apply_filters(driver)
+
         assert_no_results_found(driver)
 
     finally:
         close_driver(driver)
 
 
-def test_search_function_3_author():
+def test_search_function_3_description():
     """Funcion 3: description --> Resultados oficiales de la carrera de F1 en Barcelona. (valido) ;
     Buenas noches (no valido)"""
     driver = initialize_driver()
@@ -137,7 +133,7 @@ def test_search_function_3_author():
     try:
         login_standard_user(driver, host)
 
-        # CASO 1: VÁLIDO (Author 1)
+        # CASO 1: VÁLIDO
         reset_search_page(driver, host)
         open_advanced_filters(driver)
 
@@ -146,11 +142,9 @@ def test_search_function_3_author():
         )
         apply_filters(driver)
 
-        # Verificamos que aparezca algún resultado (o el título específico si lo sabemos)
-        # Asumo que Gran Premio es de Author 1
         assert_dataset_present(driver, "Gran Premio de España 2024")
 
-        # CASO 2: NO VÁLIDO (Author 23)
+        # CASO 2: NO VÁLIDO
         reset_search_page(driver, host)
         open_advanced_filters(driver)
 
@@ -171,17 +165,16 @@ def test_search_function_4_files():
     try:
         login_standard_user(driver, host)
 
-        # CASO 1: VÁLIDO (file1)
+        # CASO 1: VÁLIDO (file10.uvl)
         reset_search_page(driver, host)
         open_advanced_filters(driver)
 
-        # Asumiendo ID="filter-file"
         driver.find_element(By.ID, "filter-file").send_keys("file10.uvl")
         apply_filters(driver)
 
         assert_dataset_present(driver, "Sample dataset 4")
 
-        # CASO 2: NO VÁLIDO (file23)
+        # CASO 2: NO VÁLIDO (file23.uvl)
         reset_search_page(driver, host)
         open_advanced_filters(driver)
 
@@ -205,11 +198,10 @@ def test_search_function_5_global_search():
         # CASO 1: VÁLIDO
         reset_search_page(driver, host)
 
-        # Asumiendo que la barra principal tiene ID="query"
         search_bar = driver.find_element(By.ID, "query")
         search_bar.clear()
         search_bar.send_keys("Gran Premio de España 2024")
-        # Normalmente la barra busca al pulsar ENTER o tiene su propio botón
+        # La barra busca al pulsar ENTER
         search_bar.send_keys(Keys.RETURN)
 
         assert_dataset_present(driver, "Gran Premio de España 2024")
