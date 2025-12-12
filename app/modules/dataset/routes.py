@@ -80,6 +80,10 @@ def create_dataset():
                     response_data = json.dumps(zenodo_response_json)
                     data = json.loads(response_data)
                 except Exception as exc:
+                    fake_doi = f"10.1234/local-dataset-{dataset.id}"
+                    dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=fake_doi)
+                    # ------------------
+
                     data = {}
                     logger.exception(f"Exception while create dataset data in Zenodo: {exc}")
 
