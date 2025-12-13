@@ -166,7 +166,7 @@ class NotificationService:
             # Send to all curators
             for curator in curators:
                 mail_manager.send_email(
-                    to=curator.email, subject=subject, template="emails/new_submission", context=context
+                    to=curator.email, subject=subject, template="community/emails/new_submission", context=context
                 )
 
             current_app.logger.info(f"New submission notification sent for submission {submission.id}")
@@ -195,16 +195,23 @@ class NotificationService:
             if reviewer and hasattr(reviewer, "profile"):
                 reviewer_name = reviewer.profile.name if reviewer.profile else reviewer.email
 
+            # Build dataset URL using DOI
+            dataset_doi = dataset.ds_meta_data.dataset_doi if dataset.ds_meta_data else None
+            if dataset_doi:
+                dataset_url = url_for("dataset.subdomain_index", doi=dataset_doi, _external=True)
+            else:
+                dataset_url = url_for("community.detail", slug=community.slug, _external=True)
+
             context = {
                 "community_name": community.name,
                 "dataset_title": dataset_title,
                 "reviewer_name": reviewer_name,
-                "dataset_url": url_for("dataset.view", dataset_id=dataset.id, _external=True),
+                "dataset_url": dataset_url,
                 "community_url": url_for("community.detail", slug=community.slug, _external=True),
             }
 
             mail_manager.send_email(
-                to=submitter.email, subject=subject, template="emails/dataset_accepted", context=context
+                to=submitter.email, subject=subject, template="community/emails/dataset_accepted", context=context
             )
 
             current_app.logger.info(f"Approval notification sent for submission {submission.id}")
@@ -233,17 +240,24 @@ class NotificationService:
             if reviewer and hasattr(reviewer, "profile"):
                 reviewer_name = reviewer.profile.name if reviewer.profile else reviewer.email
 
+            # Build dataset URL using DOI
+            dataset_doi = dataset.ds_meta_data.dataset_doi if dataset.ds_meta_data else None
+            if dataset_doi:
+                dataset_url = url_for("dataset.subdomain_index", doi=dataset_doi, _external=True)
+            else:
+                dataset_url = url_for("community.detail", slug=community.slug, _external=True)
+
             context = {
                 "community_name": community.name,
                 "dataset_title": dataset_title,
                 "reviewer_name": reviewer_name,
                 "feedback": submission.feedback or "No se proporcionó feedback adicional.",
-                "dataset_url": url_for("dataset.view", dataset_id=dataset.id, _external=True),
+                "dataset_url": dataset_url,
                 "community_url": url_for("community.detail", slug=community.slug, _external=True),
             }
 
             mail_manager.send_email(
-                to=submitter.email, subject=subject, template="emails/dataset_rejected", context=context
+                to=submitter.email, subject=subject, template="community/emails/dataset_rejected", context=context
             )
 
             current_app.logger.info(f"Rejection notification sent for submission {submission.id}")
