@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import io
+import logging
 import os
 import shutil
 import zipfile
@@ -8,14 +9,19 @@ from pathlib import Path
 
 import requests
 from flask_login import current_user
+from sqlalchemy.exc import DataError
 
 from app import db
 from app.modules.dataset.models import DataSet, DSMetaData, PublicationType
 from app.modules.featuremodel.models import FeatureModel, FMMetaData
 from app.modules.hubfile.models import Hubfile
+from app.modules.zenodo.services import ZenodoService
 from core.services.BaseService import BaseService
 
 VALID_EXTENSIONS = (".uvl", ".csv")
+
+logger = logging.getLogger(__name__)
+zenodo_service = ZenodoService()
 
 
 def calculate_checksum_and_size_bytes(content_bytes):
@@ -148,5 +154,56 @@ class UploaderService(BaseService):
             )
             db.session.add(hubfile)
             db.session.commit()
+
+        deposition_id = None
+
+        try:
+            logger.info(f"Attempting FULL synchronization of dataset {dataset.id} with Zenodo/FakeNodo.")
+
+            zenodo_response_json = zenodo_service.create_new_deposition(dataset)
+            deposition_id = zenodo_response_json.get("id")
+
+            try:
+                dataset.ds_meta_data.deposition_id = deposition_id
+                db.session.add(dataset.ds_meta_data)
+                db.session.commit()
+            except DataError as db_exc:
+                db.session.rollback()
+                logger.warning(
+                    f"DB WARNING: Data truncated for deposition_id ({deposition_id}). "
+                    f"Deposition ID not saved locally, but continuing with Zenodo API calls. "
+                    f"Error: {db_exc}"
+                )
+            except Exception as other_db_exc:
+                db.session.rollback()
+                raise other_db_exc
+
+            if deposition_id:
+                for fm in dataset.feature_models:
+                    zenodo_service.upload_file(dataset, deposition_id, fm, user=current_user)
+
+                zenodo_service.publish_deposition(deposition_id)
+
+                deposition_doi = zenodo_service.get_doi(deposition_id)
+
+                try:
+                    dataset.ds_meta_data.dataset_doi = deposition_doi
+                    db.session.add(dataset.ds_meta_data)
+                    db.session.commit()
+                    logger.info(f"Dataset {dataset.id} successfully synchronized. DOI: {deposition_doi}")
+                except Exception as db_exc:
+                    db.session.rollback()
+                    logger.error(
+                        f"DB ERROR: Could not save final dataset_doi {deposition_doi}. "
+                        f"Synchronization failed locally. Error: {db_exc}"
+                    )
+            else:
+                logger.error("Zenodo API call failed to return a deposition_id, skipping upload/publish.")
+
+        except Exception as e:
+            db.session.rollback()
+            logger.error(
+                f"Failed to synchronize dataset {dataset.id} with Zenodo/FakeNodo. Local data saved. Error: {e}"
+            )
 
         return dataset
