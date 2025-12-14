@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nueva propuesta de dataset</title>
+    <title>New dataset submission</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -86,36 +86,36 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Nueva propuesta de dataset</h1>
+            <h1>New dataset submission</h1>
         </div>
         
         <div class="content">
-            <p>Se ha recibido una nueva propuesta de dataset para tu comunidad que requiere revisión.</p>
+            <p>A new dataset submission has been received for your community and requires review.</p>
             
             <div class="info-box">
-                <p><strong>Comunidad:</strong> {{ community_name }}</p>
+                <p><strong>Community:</strong> {{ community_name }}</p>
                 <p><strong>Dataset:</strong> {{ dataset_title }}</p>
-                <p><strong>Propuesto por:</strong> {{ submitter_name }}</p>
+                <p><strong>Submitted by:</strong> {{ submitter_name }}</p>
             </div>
             
             {% if submission_message %}
             <div class="message-box">
-                <p><strong>Mensaje del autor:</strong></p>
+                <p><strong>Author's message:</strong></p>
                 <p>"{{ submission_message }}"</p>
             </div>
             {% endif %}
             
-            <p>Como moderador de la comunidad, puedes revisar esta propuesta y decidir si aceptarla o rechazarla.</p>
+            <p>As a community curator, you can review this submission and decide whether to accept or reject it.</p>
             
             <p>
-                <a href="{{ submission_url }}" class="button">Revisar propuesta</a>
-                <a href="{{ community_url }}" class="button button-secondary">Ver comunidad</a>
+                <a href="{{ submission_url }}" class="button">Review submission</a>
+                <a href="{{ community_url }}" class="button button-secondary">View community</a>
             </p>
         </div>
         
         <div class="footer">
-            <p>Este email fue enviado automáticamente por Formula Hub.</p>
-            <p>Recibes este email porque eres moderador o propietario de la comunidad {{ community_name }}.</p>
+            <p>This email was sent automatically by Formula Hub.</p>
+            <p>You received this email because you are a curator or owner of the {{ community_name }} community.</p>
         </div>
     </div>
 </body>

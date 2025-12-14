@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Actualización de tu propuesta</title>
+    <title>Submission Update</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -85,34 +85,34 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Actualización sobre tu propuesta</h1>
+            <h1>Update on your submission</h1>
         </div>
         
         <div class="content">
-            <p>Hemos revisado tu propuesta de dataset y lamentamos informarte que no ha sido aceptada en esta ocasión.</p>
+            <p>We have reviewed your dataset submission and regret to inform you that it has not been accepted at this time.</p>
             
             <div class="info-box">
                 <p><strong>Dataset:</strong> {{ dataset_title }}</p>
-                <p><strong>Comunidad:</strong> {{ community_name }}</p>
-                <p><strong>Revisado por:</strong> {{ reviewer_name }}</p>
+                <p><strong>Community:</strong> {{ community_name }}</p>
+                <p><strong>Reviewed by:</strong> {{ reviewer_name }}</p>
             </div>
             
             <div class="feedback-box">
-                <p><strong>Feedback del revisor:</strong></p>
+                <p><strong>Reviewer feedback:</strong></p>
                 <p>{{ feedback }}</p>
             </div>
             
-            <p>Te animamos a revisar el feedback proporcionado y considerar hacer los ajustes necesarios para una futura propuesta.</p>
+            <p>We encourage you to review the feedback provided and consider making the necessary adjustments for a future submission.</p>
             
             <p>
-                <a href="{{ dataset_url }}" class="button">Ver mi dataset</a>
-                <a href="{{ community_url }}" class="button button-secondary">Ver comunidad</a>
+                <a href="{{ dataset_url }}" class="button">View my dataset</a>
+                <a href="{{ community_url }}" class="button button-secondary">View community</a>
             </p>
         </div>
         
         <div class="footer">
-            <p>Este email fue enviado automáticamente por Formula Hub.</p>
-            <p>Si tienes alguna pregunta, contacta con los administradores de la comunidad.</p>
+            <p>This email was sent automatically by Formula Hub.</p>
+            <p>If you have any questions, contact the community administrators.</p>
         </div>
     </div>
 </body>
