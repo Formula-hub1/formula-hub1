@@ -10,6 +10,7 @@ from app.modules.profile.services import UserProfileService
 authentication_service = AuthenticationService()
 user_profile_service = UserProfileService()
 
+
 @auth_bp.route("/signup/", methods=["GET", "POST"])
 def show_signup_form():
     if current_user.is_authenticated:
@@ -32,6 +33,7 @@ def show_signup_form():
 
     return render_template("auth/signup_form.html", form=form)
 
+
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
@@ -46,10 +48,12 @@ def login():
 
     return render_template("auth/login_form.html", form=form)
 
+
 @auth_bp.route("/logout")
 def logout():
     logout_user()
     return redirect(url_for("public.index"))
+
 
 @auth_bp.route("/recover-password/", methods=["GET", "POST"])
 def show_recover_password_form():
@@ -66,10 +70,10 @@ def show_recover_password_form():
 
     try:
         authentication_service.send_email(**form.data)
+        return redirect(url_for("auth.login"))
     except Exception as exc:
         return render_template("auth/recover_password_form.html", form=form, error=f"Error sending email: {exc}")
 
-    return render_template("auth/recover_password_form.html", form=form)
 
 @auth_bp.route("/reset-password/", methods=["GET", "POST"])
 def reset_password_form():
