@@ -1,18 +1,18 @@
 {% extends "base_template.html" %}
 
-{% block title %}Comunidades{% endblock %}
+{% block title %}Communities{% endblock %}
 
 {% block content %}
 
 <div class="row mb-3">
     <div class="col-6">
-        <h1 class="h2 mb-0"><b>Comunidades</b></h1>
+        <h1 class="h2 mb-0"><b>Communities</b></h1>
     </div>
     <div class="col-6 text-end">
         {% if current_user.is_authenticated %}
         <a href="{{ url_for('community.create') }}" class="btn btn-primary">
             <i data-feather="plus" class="center-button-icon"></i>
-            Crear comunidad
+            Create community
         </a>
         {% endif %}
     </div>
@@ -21,7 +21,7 @@
 <div class="row mb-4">
     <div class="col-12">
         <form action="{{ url_for('community.search') }}" method="GET" class="d-flex">
-            <input type="text" name="q" class="form-control me-2" placeholder="Buscar comunidades...">
+            <input type="text" name="q" class="form-control me-2" placeholder="Search communities...">
             <button type="submit" class="btn btn-outline-primary">
                 <i data-feather="search"></i>
             </button>
@@ -45,7 +45,7 @@
             </div>
             <div class="card-footer bg-transparent">
                 <a href="{{ url_for('community.detail', slug=community.slug) }}" class="btn btn-outline-primary btn-sm">
-                    Ver comunidad
+                    View community
                 </a>
             </div>
         </div>
@@ -58,12 +58,12 @@
         <div class="card">
             <div class="card-body text-center py-5">
                 <img src="{{ url_for('static', filename='img/items/not_found.svg') }}" alt="No communities" style="max-width: 200px;" class="mb-4">
-                <h4>No hay comunidades disponibles</h4>
-                <p class="text-muted">Sé el primero en crear una comunidad.</p>
+                <h4>No communities available</h4>
+                <p class="text-muted">Be the first to create a community.</p>
                 {% if current_user.is_authenticated %}
                 <a href="{{ url_for('community.create') }}" class="btn btn-primary">
                     <i data-feather="plus" class="center-button-icon"></i>
-                    Crear comunidad
+                    Create community
                 </a>
                 {% endif %}
             </div>

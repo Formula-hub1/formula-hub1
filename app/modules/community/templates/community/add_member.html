@@ -1,6 +1,6 @@
 {% extends "base_template.html" %}
 
-{% block title %}Añadir miembro - {{ community.name }}{% endblock %}
+{% block title %}Add member - {{ community.name }}{% endblock %}
 
 {% block content %}
 
@@ -8,7 +8,7 @@
     <div class="col-12">
         <a href="{{ url_for('community.members', slug=community.slug) }}" class="btn btn-outline-secondary btn-sm">
             <i data-feather="arrow-left" class="center-button-icon"></i>
-            Volver
+            Back
         </a>
     </div>
 </div>
@@ -16,7 +16,7 @@
 <div class="row">
     <div class="col-xl-6 col-lg-8 col-md-10">
         
-        <h1 class="h2 mb-4"><b>Añadir miembro</b> a {{ community.name }}</h1>
+        <h1 class="h2 mb-4"><b>Add member</b> to {{ community.name }}</h1>
 
         <div class="card">
             <div class="card-body">
@@ -26,7 +26,7 @@
                     <div class="mb-3">
                         {{ form.user_id.label(class="form-label") }} *
                         {{ form.user_id(class="form-control") }}
-                        <small class="text-muted">Introduce el ID numérico del usuario.</small>
+                        <small class="text-muted">Enter the user's numeric ID.</small>
                         {% for error in form.user_id.errors %}
                         <br><span class="text-danger small">{{ error }}</span>
                         {% endfor %}
@@ -42,7 +42,7 @@
 
                     <button type="submit" class="btn btn-primary">
                         <i data-feather="user-plus" class="center-button-icon"></i>
-                        Añadir miembro
+                        Add member
                     </button>
                 </form>
             </div>

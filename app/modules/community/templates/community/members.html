@@ -1,6 +1,6 @@
 {% extends "base_template.html" %}
 
-{% block title %}Miembros - {{ community.name }}{% endblock %}
+{% block title %}Members - {{ community.name }}{% endblock %}
 
 {% block content %}
 
@@ -8,7 +8,7 @@
     <div class="col-12">
         <a href="{{ url_for('community.detail', slug=community.slug) }}" class="btn btn-outline-secondary btn-sm">
             <i data-feather="arrow-left" class="center-button-icon"></i>
-            Volver a {{ community.name }}
+            Back to {{ community.name }}
         </a>
     </div>
 </div>
@@ -17,11 +17,11 @@
     <div class="col-xl-8 col-lg-10">
         
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h2 mb-0"><b>Miembros</b> de {{ community.name }}</h1>
+            <h1 class="h2 mb-0"><b>Members</b> of {{ community.name }}</h1>
             {% if can_manage %}
             <a href="{{ url_for('community.add_member', slug=community.slug) }}" class="btn btn-primary btn-sm">
                 <i data-feather="user-plus" class="center-button-icon"></i>
-                Añadir miembro
+                Add member
             </a>
             {% endif %}
         </div>
@@ -33,11 +33,11 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Usuario</th>
-                                <th>Rol</th>
-                                <th>Desde</th>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Since</th>
                                 {% if can_manage %}
-                                <th>Acciones</th>
+                                <th>Actions</th>
                                 {% endif %}
                             </tr>
                         </thead>
@@ -53,18 +53,18 @@
                                 </td>
                                 <td>
                                     {% if membership.role.value == 'owner' %}
-                                    <span class="badge bg-danger">Propietario</span>
+                                    <span class="badge bg-danger">Owner</span>
                                     {% elif membership.role.value == 'curator' %}
-                                    <span class="badge bg-primary">Moderador</span>
+                                    <span class="badge bg-primary">Curator</span>
                                     {% else %}
-                                    <span class="badge bg-secondary">Miembro</span>
+                                    <span class="badge bg-secondary">Member</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ membership.joined_at.strftime('%d/%m/%Y') }}</td>
                                 {% if can_manage %}
                                 <td>
                                     {% if membership.role.value != 'owner' %}
-                                    <form action="{{ url_for('community.remove_member', slug=community.slug, user_id=membership.user_id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar este miembro?');">
+                                    <form action="{{ url_for('community.remove_member', slug=community.slug, user_id=membership.user_id) }}" method="POST" class="d-inline" onsubmit="return confirm('Remove this member?');">
                                         <button type="submit" class="btn btn-outline-danger btn-sm">
                                             <i data-feather="user-x"></i>
                                         </button>
@@ -78,7 +78,7 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted text-center py-4">No hay miembros en esta comunidad.</p>
+                <p class="text-muted text-center py-4">No members in this community.</p>
                 {% endif %}
             </div>
         </div>
