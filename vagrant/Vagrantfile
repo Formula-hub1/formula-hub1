@@ -22,7 +22,7 @@ def load_env(file)
 end
 
 # Load .env file from the top level and get the loaded variables
-env_file_path = File.expand_path("../../.env", __FILE__)
+env_file_path = File.expand_path("../../.env.vagrant", __FILE__)
 puts "Loading .env file from: #{env_file_path}"
 loaded_env_vars = load_env(env_file_path)
 
@@ -64,7 +64,7 @@ Vagrant.configure("2") do |config|
 
   # Load environment variables on vagrant ssh
   config.vm.provision "shell", inline: <<-SHELL
-    ENV_FILE="/vagrant/.env"
+    ENV_FILE="/vagrant/.env.vagrant"
     if [ -f $ENV_FILE ]; then
       export $(cat $ENV_FILE | xargs)
       while IFS= read -r line; do
