@@ -70,10 +70,10 @@ def show_recover_password_form():
 
     try:
         authentication_service.send_email(**form.data)
-        return redirect(url_for("auth.login"))
     except Exception as exc:
         return render_template("auth/recover_password_form.html", form=form, error=f"Error sending email: {exc}")
 
+    return render_template("auth/recover_password_form.html", form=form)
 
 
 @auth_bp.route("/reset-password/", methods=["GET", "POST"])
