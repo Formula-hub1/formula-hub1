@@ -4,48 +4,8 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-from app import create_app, db
-from app.modules.auth.repositories import UserRepository
-from app.modules.auth.services import AuthenticationService
-from app.modules.dataset.tests.test_recommender_selenium import wait_for_page_to_load
 from core.environment.host import get_host_for_selenium_testing
 from core.selenium.common import close_driver, initialize_driver
-
-
-def setup_reset_data(email: str, password: str, create_if_missing: bool = True):
-    """
-    Crea el application context, busca el usuario, lo crea si es necesario,
-    y genera un token de reset.
-    """
-    # Importante: Si estás teniendo problemas con el entorno de testing,
-    # usa "testing". Si el error 1146 persiste y no puedes modificar conftest,
-    # el problema es la BBDD, no el código.
-    app = create_app("testing")
-
-    with app.app_context():
-        user_repo = UserRepository()
-        auth_service = AuthenticationService()
-
-        # --- SOLUCIÓN DE EMERGENCIA PARA BBDD ROTA (Error 1146) ---
-        try:
-            db.drop_all()
-            db.create_all()
-            db.session.commit()
-        except Exception as e:
-            # En un entorno de testing normal, esto no debería ser necesario.
-            print(f"DEBUG: Error al forzar creación de tablas (probablemente un bug en conftest): {e}")
-        # ---------------------------------------------------------
-
-        user = user_repo.get_by_email(email)
-
-        if user is None and create_if_missing:
-            user = auth_service.create_with_profile(name="Test", surname="User", email=email, password=password)
-
-        if user:
-            token = auth_service.generate_reset_token(user.id)
-            return user, token
-        else:
-            raise Exception(f"Usuario {email} no encontrado ni pudo ser creado.")
 
 
 def test_login_and_check_element():
