@@ -105,10 +105,15 @@ def test_service_create_with_profile_fail_no_password(clean_database):
 
 
 # Recover password test
+
+
 def test_service_recover_password_email_success(clean_database, mocker):
+    data = {"name": "Test", "surname": "Recover", "email": "recover@example.com", "password": "test1234"}
+    user = AuthenticationService().create_with_profile(**data)
+
     mocker.patch("app.modules.auth.services.mail.send")
 
-    result = AuthenticationService().send_email(email="recover@example.com")
+    result = AuthenticationService().send_email(email=user.email)
 
     assert "Email succesfully sent to recover@example.com" in result
 
