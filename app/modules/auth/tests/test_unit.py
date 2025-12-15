@@ -102,3 +102,97 @@ def test_service_create_with_profile_fail_no_password(clean_database):
 
     assert UserRepository().count() == 0
     assert UserProfileRepository().count() == 0
+
+
+# Recover password test
+
+
+def test_service_recover_password_email_success(clean_database, mocker):
+    data = {"name": "Test", "surname": "Recover", "email": "recover@example.com", "password": "test1234"}
+    user = AuthenticationService().create_with_profile(**data)
+
+    mocker.patch("app.modules.auth.services.mail.send")
+
+    result = AuthenticationService().send_email(email="recover@example.com")
+
+    assert "Email succesfully sent to recover@example.com" in result
+
+
+def test_service_recover_password_email_fail_no_user(clean_database, mocker):
+    mocker.patch("app.modules.auth.services.mail.send")
+
+    email = "nonexistent@example.com"
+    result = AuthenticationService().send_email(email=email)
+
+    assert "Email should be associated to an existing account" in result
+    assert mocker.patch("app.modules.auth.services.mail.send").call_count == 0, "mail.send should not have been called"
+
+
+def test_recover_password_form_fail_no_email(test_client):
+    response = test_client.post("/recover-password/", data=dict(email=""), follow_redirects=False)
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/"
+
+
+def test_recover_password_form_fail_nonexistent_email(test_client, mocker):
+    email = "nonexistent@example.com"
+    mocker.patch(
+        "app.modules.auth.services.AuthenticationService.send_email",
+        return_value="Email should be associated to an existing account",
+    )
+
+    mocker.patch("app.modules.auth.services.AuthenticationService.is_email_available", return_value=True)
+
+    response = test_client.post("/recover-password/", data=dict(email=email), follow_redirects=False)
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/"
+
+
+def test_reset_password_form_success(test_client, clean_database):
+    data = {"name": "Test", "surname": "Reset", "email": "reset@example.com", "password": "oldpassword"}
+    user = AuthenticationService().create_with_profile(**data)
+    user_id = user.id
+
+    token = AuthenticationService().generate_reset_token(user_id)
+    new_password = "newpassword1234"
+
+    response = test_client.post(
+        f"/reset-password/?token={token}",
+        data=dict(password=new_password, new_password=new_password),
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == url_for("auth.login", _external=False)
+
+    updated_user = UserRepository().get_by_id(user_id)
+    assert updated_user.check_password(new_password)
+
+
+def test_reset_password_form_fail_invalid_token(test_client):
+    invalid_token = "invalid.token.12345"
+
+    response = test_client.get(f"/reset-password/?token={invalid_token}", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == url_for("auth.login", _external=False)
+
+
+def test_reset_password_form_fail_same_password(test_client, clean_database):
+    old_password = "sameoldpassword"
+    data = {"name": "Test", "surname": "Same", "email": "same@example.com", "password": old_password}
+    user = AuthenticationService().create_with_profile(**data)
+    user_id = user.id
+
+    token = AuthenticationService().generate_reset_token(user_id)
+
+    response = test_client.post(
+        f"/reset-password/?token={token}",
+        data=dict(password=old_password, new_password=old_password),
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 200
+    assert b"New password can not be the same as the last one." in response.data

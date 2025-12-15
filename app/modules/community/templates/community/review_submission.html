@@ -15,7 +15,7 @@
 
 <div class="row">
     <div class="col-xl-8 col-lg-10 col-md-12">
-        
+
         <h1 class="h2 mb-4"><b>Review</b> submission</h1>
 
         <!-- Dataset Info -->
@@ -26,9 +26,9 @@
             <div class="card-body">
                 <h4>{{ submission.dataset.ds_meta_data.title if submission.dataset.ds_meta_data else 'Untitled' }}</h4>
                 <p class="text-muted">{{ submission.dataset.ds_meta_data.description if submission.dataset.ds_meta_data else '' }}</p>
-                
+
                 <hr>
-                
+
                 <div class="row">
                     <div class="col-md-6">
                         <p class="mb-1"><strong>Submitted by:</strong></p>
@@ -45,13 +45,13 @@
                         <p>{{ submission.submitted_at.strftime('%d/%m/%Y %H:%M') }}</p>
                     </div>
                 </div>
-                
+
                 {% if submission.message %}
                 <hr>
                 <p class="mb-1"><strong>Submitter's message:</strong></p>
                 <p class="text-muted">{{ submission.message }}</p>
                 {% endif %}
-                
+
                 {% if submission.dataset.ds_meta_data and submission.dataset.ds_meta_data.dataset_doi %}
                 <a href="/doi/{{ submission.dataset.ds_meta_data.dataset_doi }}" target="_blank" class="btn btn-outline-primary btn-sm mt-2">
                     <i data-feather="external-link" class="center-button-icon"></i>
@@ -86,7 +86,7 @@
                             Reject
                         </button>
                     </div>
-                    
+
                     <input type="hidden" name="action" id="action" value="">
                 </form>
             </div>

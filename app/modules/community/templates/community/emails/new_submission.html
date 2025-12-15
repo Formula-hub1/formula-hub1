@@ -88,31 +88,31 @@
         <div class="header">
             <h1>New dataset submission</h1>
         </div>
-        
+
         <div class="content">
             <p>A new dataset submission has been received for your community and requires review.</p>
-            
+
             <div class="info-box">
                 <p><strong>Community:</strong> {{ community_name }}</p>
                 <p><strong>Dataset:</strong> {{ dataset_title }}</p>
                 <p><strong>Submitted by:</strong> {{ submitter_name }}</p>
             </div>
-            
+
             {% if submission_message %}
             <div class="message-box">
                 <p><strong>Author's message:</strong></p>
                 <p>"{{ submission_message }}"</p>
             </div>
             {% endif %}
-            
+
             <p>As a community curator, you can review this submission and decide whether to accept or reject it.</p>
-            
+
             <p>
                 <a href="{{ submission_url }}" class="button">Review submission</a>
                 <a href="{{ community_url }}" class="button button-secondary">View community</a>
             </p>
         </div>
-        
+
         <div class="footer">
             <p>This email was sent automatically by Formula Hub.</p>
             <p>You received this email because you are a curator or owner of the {{ community_name }} community.</p>

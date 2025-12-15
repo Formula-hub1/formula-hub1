@@ -15,7 +15,7 @@
 
 <div class="row">
     <div class="col-xl-8 col-lg-12">
-        
+
         <!-- Community Info Card -->
         <div class="card mb-4">
             <div class="card-body">
@@ -45,16 +45,16 @@
                     </div>
                     {% endif %}
                 </div>
-                
+
                 <p class="text-muted">{{ community.description }}</p>
-                
+
                 {% if community.website %}
                 <p>
                     <i data-feather="globe" class="me-1"></i>
                     <a href="{{ community.website }}" target="_blank">{{ community.website }}</a>
                 </p>
                 {% endif %}
-                
+
                 <p class="text-secondary small">
                     Created on {{ community.created_at.strftime('%d/%m/%Y') }}
                 </p>
@@ -96,7 +96,7 @@
     </div>
 
     <div class="col-xl-4 col-lg-12">
-        
+
         <!-- Actions Card -->
         <div class="card mb-4">
             <div class="card-header">
