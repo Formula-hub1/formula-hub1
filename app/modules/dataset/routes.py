@@ -9,11 +9,13 @@ from zipfile import ZipFile
 
 from flask import abort, jsonify, make_response, redirect, render_template, request, send_from_directory, url_for
 from flask_login import current_user, login_required
+from werkzeug.utils import secure_filename
 
+from app import db
 from app.modules.auth.services import AuthenticationService
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.forms import FormulaDataSetForm, UVLDataSetForm
-from app.modules.dataset.models import Comment, DSDownloadRecord
+from app.modules.dataset.models import Comment, DatasetImage, DSDownloadRecord
 from app.modules.dataset.services import (
     AuthorService,
     CommentService,
@@ -29,6 +31,7 @@ comment_service = CommentService()
 
 logger = logging.getLogger(__name__)
 
+UPLOAD_FOLDER = "app/static/uploads/datasets"
 
 dataset_service = DataSetService()
 author_service = AuthorService()
@@ -36,6 +39,35 @@ dsmetadata_service = DSMetaDataService()
 zenodo_service = ZenodoService()
 doi_mapping_service = DOIMappingService()
 ds_view_record_service = DSViewRecordService()
+
+
+def save_dataset_images(dataset, images):
+    """Guarda las imágenes asociadas a un dataset."""
+    if not images:
+        return
+    
+    dataset_folder = os.path.join(UPLOAD_FOLDER, str(dataset.id))
+    os.makedirs(dataset_folder, exist_ok=True)
+    
+    for image in images:
+        if image and image.filename:
+            filename = secure_filename(image.filename)
+            # Evitar duplicados
+            base, ext = os.path.splitext(filename)
+            counter = 1
+            while os.path.exists(os.path.join(dataset_folder, filename)):
+                filename = f"{base}_{counter}{ext}"
+                counter += 1
+            
+            image.save(os.path.join(dataset_folder, filename))
+            
+            dataset_image = DatasetImage(
+                filename=filename,
+                dataset_id=dataset.id
+            )
+            db.session.add(dataset_image)
+    
+    db.session.commit()
 
 
 @dataset_bp.route("/dataset/upload", methods=["GET", "POST"])
@@ -66,6 +98,11 @@ def create_dataset():
                 # Mover archivos solo si es UVL (Formula CSV ya se procesó en memoria)
                 if isinstance(form_to_process, UVLDataSetForm):
                     dataset_service.move_feature_models(dataset)
+
+                # Guardar imágenes del dataset
+                images = request.files.getlist("images")
+                if images:
+                    save_dataset_images(dataset, images)
 
                 # --- CÁLCULO DE RECOMENDACIONES ---
                 try:

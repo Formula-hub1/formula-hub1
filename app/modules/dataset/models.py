@@ -288,3 +288,16 @@ class DOIMapping(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dataset_doi_old = db.Column(db.String(120))
     dataset_doi_new = db.Column(db.String(120))
+
+class DatasetImage(db.Model):
+    __tablename__ = "dataset_image"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(256), nullable=False)
+    dataset_id = db.Column(db.Integer, db.ForeignKey("dataset.id"), nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    dataset = db.relationship("DataSet", backref=db.backref("images", lazy=True, cascade="all, delete-orphan"))
+    
+    def __repr__(self):
+        return f"<DatasetImage {self.filename}>"

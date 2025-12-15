@@ -146,7 +146,7 @@ var currentId = 0;
 
                     ["basic_info_form", "uploaded_models_form"].forEach((formId) => {
                         const form = document.getElementById(formId);
-                        const inputs = form.querySelectorAll('input, select, textarea');
+                        const inputs = form.querySelectorAll('input:not([type="file"]), select, textarea');
                         inputs.forEach(input => {
                             if (input.name) {
                                 formData[input.name] = formData[input.name] || [];
@@ -165,6 +165,14 @@ var currentId = 0;
                     for (let key in formData) {
                         if (formData.hasOwnProperty(key)) {
                             formUploadData.set(key, formData[key]);
+                        }
+                    }
+
+                    // Add image files
+                    const imageInput = document.querySelector('input[name="images"]');
+                    if (imageInput && imageInput.files.length > 0) {
+                        for (let i = 0; i < imageInput.files.length; i++) {
+                            formUploadData.append('images', imageInput.files[i]);
                         }
                     }
 
