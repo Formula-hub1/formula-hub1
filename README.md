@@ -16,19 +16,19 @@ All datasets uploaded to FormulaHub must follow a specific CSV structure. Each C
 
 ### Required Columns
 
-Working on it.
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
 
 ### Example CSV
 
-Working on it.
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Max Verstappen,Red Bull Racing,Honda RBPT,1,25.0,"1:35:48.333",66,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Lando Norris,McLaren,Mercedes,2,18.0,"1:35:48.653",66,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Charles Leclerc,Ferrari,Ferrari,DNF,0.0,"1:35:49.653",45,"Abandono - Daño por Colisión"
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Lewis Hamilton,Mercedes,Mercedes,5,10.0,"1:36:10.500",66,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Valtteri Bottas,Kick Sauber,Ferrari,15,0.0,"1:36:45.000",65,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Fernando Alonso,Aston Martin,Mercedes,DNF,0.0,"1:35:47.601",21,"Abandono - Pérdida de Potencia"
 
-### Validation Rules
-
-Working on it.
-
-##  Features
-
-Working on it.
+**You can find more examples in the folder: app/modules/dataset/formula_csv_examples**
 
 ##  Development
 
@@ -42,7 +42,7 @@ Working on it.
 
 ```bash
 # Clone the repository
-git clone [https://github.com/Formula-hub1/formula-hub1.git](https://github.com/Formula-hub1/formula-hub1.git)
+git clone https://github.com/Formula-hub1/formula-hub1.git
 cd formula-hub1
 
 # Create virtual environment
