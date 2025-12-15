@@ -1,6 +1,6 @@
 {% extends "base_template.html" %}
 
-{% block title %}Buscar comunidades{% endblock %}
+{% block title %}Search communities{% endblock %}
 
 {% block content %}
 
@@ -8,17 +8,17 @@
     <div class="col-12">
         <a href="{{ url_for('community.index') }}" class="btn btn-outline-secondary btn-sm">
             <i data-feather="arrow-left" class="center-button-icon"></i>
-            Volver
+            Back
         </a>
     </div>
 </div>
 
-<h1 class="h2 mb-4"><b>Buscar</b> comunidades</h1>
+<h1 class="h2 mb-4"><b>Search</b> communities</h1>
 
 <div class="row mb-4">
     <div class="col-xl-6 col-lg-8 col-md-10">
         <form action="{{ url_for('community.search') }}" method="GET" class="d-flex">
-            <input type="text" name="q" class="form-control me-2" placeholder="Buscar comunidades..." value="{{ query }}">
+            <input type="text" name="q" class="form-control me-2" placeholder="Search communities..." value="{{ query }}">
             <button type="submit" class="btn btn-primary">
                 <i data-feather="search"></i>
             </button>
@@ -27,7 +27,7 @@
 </div>
 
 {% if query %}
-<p class="text-muted mb-4">Resultados para: <strong>"{{ query }}"</strong></p>
+<p class="text-muted mb-4">Results for: <strong>"{{ query }}"</strong></p>
 {% endif %}
 
 {% if communities %}
@@ -46,7 +46,7 @@
             </div>
             <div class="card-footer bg-transparent">
                 <a href="{{ url_for('community.detail', slug=community.slug) }}" class="btn btn-outline-primary btn-sm">
-                    Ver comunidad
+                    View community
                 </a>
             </div>
         </div>
@@ -57,8 +57,8 @@
 <div class="card">
     <div class="card-body text-center py-5">
         <img src="{{ url_for('static', filename='img/items/not_found.svg') }}" alt="No results" style="max-width: 200px;" class="mb-4">
-        <h4>No se encontraron comunidades</h4>
-        <p class="text-muted">Intenta con otros términos de búsqueda.</p>
+        <h4>No communities found</h4>
+        <p class="text-muted">Try different search terms.</p>
     </div>
 </div>
 {% endif %}

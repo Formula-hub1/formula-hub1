@@ -1,0 +1,41 @@
+name: 📦 CD - Create Release & Tag
+
+on:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - '**'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: 🚀 Create Semantic Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate Next Version
+        id: semantic
+        uses: PaulHatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: "v"
+          major_pattern: "(MAJOR)"
+          minor_pattern: "(feat)"
+          version_format: "${major}.${minor}.${patch}"
+          bump_each_commit: false
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.semantic.outputs.version }}
+          name: Release v${{ steps.semantic.outputs.version }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          token: ${{ secrets.RELEASE_AUTOMATION_KEY }}

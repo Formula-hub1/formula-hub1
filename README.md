@@ -6,31 +6,31 @@
 
 FormulaHub — a **CSV-first** platform focused on tabular racing datasets and tools for motorsport data analysis. Developed by DiversoLab / FormulaHub.
 
-## 🏁 Overview
+## Overview
 
 FormulaHub is a specialized repository platform for motorsport result and telemetry datasets. It validates, stores, and provides access to structured CSV files containing detailed race information, enabling researchers and analysts to share and discover data from Formula series and other racing categories.
 
-## 📊 CSV Structure Requirements
+## CSV Structure Requirements
 
 All datasets uploaded to FormulaHub must follow a specific CSV structure. Each CSV file represents a collection of race results, with each row containing information about a single driver in a race.
 
 ### Required Columns
 
-Working on it.
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
 
 ### Example CSV
 
-Working on it.
+nombre_gp,anio_temporada,fecha_carrera,circuito,piloto_nombre,equipo,motor,posicion_final,puntos_obtenidos,tiempo_carrera,vueltas_completadas,estado_carrera
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Max Verstappen,Red Bull Racing,Honda RBPT,1,25.0,"1:35:48.333",66,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Lando Norris,McLaren,Mercedes,2,18.0,"1:35:48.653",66,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Charles Leclerc,Ferrari,Ferrari,DNF,0.0,"1:35:49.653",45,"Abandono - Daño por Colisión"
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Lewis Hamilton,Mercedes,Mercedes,5,10.0,"1:36:10.500",66,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Valtteri Bottas,Kick Sauber,Ferrari,15,0.0,"1:36:45.000",65,Terminado
+Gran Premio de España,2024,2024-06-23,Circuit de Barcelona-Catalunya,Fernando Alonso,Aston Martin,Mercedes,DNF,0.0,"1:35:47.601",21,"Abandono - Pérdida de Potencia"
 
-### Validation Rules
+**You can find more examples in the folder: app/modules/dataset/formula_csv_examples**
 
-Working on it.
-
-## 🚀 Features
-
-Working on it.
-
-## 🛠️ Development
+##  Development
 
 ### Prerequisites
 
@@ -42,7 +42,7 @@ Working on it.
 
 ```bash
 # Clone the repository
-git clone [https://github.com/Formula-hub1/formula-hub1.git](https://github.com/Formula-hub1/formula-hub1.git)
+git clone https://github.com/Formula-hub1/formula-hub1.git
 cd formula-hub1
 
 # Create virtual environment
@@ -68,7 +68,7 @@ cp .env.docker.example .env.docker
 docker compose -f docker/docker-compose.dev.yml up
 ```
 
-## 🧪 Testing
+##  Testing
 
 ```bash
 # Run all tests
@@ -78,11 +78,11 @@ pytest
 pytest --cov=app
 ```
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! Please read our contributing guidelines before submitting pull requests.
 
-## 📚 Documentation
+##  Documentation
 
 ### Project Documentation
 
@@ -94,8 +94,8 @@ Contributions are welcome! Please read our contributing guidelines before submit
   - Git hooks usage
 
 - **[Issue Templates](.github/ISSUE_TEMPLATE/)** - Standardized templates for:
-  - 🐛 Bug reports
-  - ✨ Feature requests
+  -  Bug reports
+  -  Feature requests
 
 - **[Git Hooks](.githooks/)** - Automated validation
   - `commit-msg` hook for enforcing commit conventions
@@ -117,6 +117,11 @@ Contributions are welcome! Please read our contributing guidelines before submit
 - **feature/*** - New features (deleted after merge)
 - **document/*** - Documentation updates (deleted after merge)
 
-## 📄 License
+##  License
 
 This project is developed by DiversoLab / FormulaHub.
+
+
+![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![Flask](https://img.shields.io/badge/flask-2.0+-green.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)

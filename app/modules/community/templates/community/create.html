@@ -1,6 +1,6 @@
 {% extends "base_template.html" %}
 
-{% block title %}Crear comunidad{% endblock %}
+{% block title %}Create community{% endblock %}
 
 {% block content %}
 
@@ -8,15 +8,15 @@
     <div class="col-12">
         <a href="{{ url_for('community.index') }}" class="btn btn-outline-secondary btn-sm">
             <i data-feather="arrow-left" class="center-button-icon"></i>
-            Volver
+            Back
         </a>
     </div>
 </div>
 
 <div class="row">
     <div class="col-xl-8 col-lg-10 col-md-12">
-        
-        <h1 class="h2 mb-4"><b>Crear</b> comunidad</h1>
+
+        <h1 class="h2 mb-4"><b>Create</b> community</h1>
 
         <div class="card">
             <div class="card-body">
@@ -34,7 +34,7 @@
                     <div class="mb-3">
                         {{ form.slug.label(class="form-label") }} *
                         {{ form.slug(class="form-control") }}
-                        <small class="text-muted">Se usará en la URL: /communities/<strong>tu-slug</strong></small>
+                        <small class="text-muted">Will be used in the URL: /communities/<strong>your-slug</strong></small>
                         {% for error in form.slug.errors %}
                         <br><span class="text-danger small">{{ error }}</span>
                         {% endfor %}
@@ -79,7 +79,7 @@
 
                     <button type="submit" class="btn btn-primary">
                         <i data-feather="plus" class="center-button-icon"></i>
-                        Crear comunidad
+                        Create community
                     </button>
                 </form>
             </div>

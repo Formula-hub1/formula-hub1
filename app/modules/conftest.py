@@ -2,6 +2,8 @@ import pytest
 
 from app import create_app, db
 from app.modules.auth.models import User
+from app.modules.auth.repositories import UserRepository
+from app.modules.auth.services import AuthenticationService
 
 
 @pytest.fixture(scope="session")
@@ -79,3 +81,32 @@ def logout(test_client):
         response: Response to GET request to log out.
     """
     return test_client.get("/logout", follow_redirects=True)
+
+
+@pytest.fixture(scope="module")
+def setup_reset_user(test_client):
+    """
+    Crea un usuario, genera un token de reset válido y limpia al final.
+    """
+
+    auth_service = AuthenticationService()
+    user_repository = UserRepository()
+
+    email = "selenium_reset_test_token@example.com"
+    old_password = "oldpassword123"
+
+    with test_client.application.app_context():
+        try:
+            user = auth_service.create_with_profile(
+                name="Selenium", surname="Reset", email=email, password=old_password
+            )
+
+            valid_token = auth_service.generate_reset_token(user.id)
+
+            yield valid_token, old_password, user.id
+
+        finally:
+            user_to_delete = user_repository.get_by_email(email)
+            if user_to_delete:
+                user_repository.delete(user_to_delete.id)
+                db.session.commit()

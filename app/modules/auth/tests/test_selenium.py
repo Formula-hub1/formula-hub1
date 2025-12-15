@@ -48,5 +48,25 @@ def test_login_and_check_element():
         close_driver(driver)
 
 
-# Call the test function
-test_login_and_check_element()
+# Recover password test
+
+
+def test_password_recovery_success():
+
+    driver = initialize_driver()
+    host = get_host_for_selenium_testing()
+
+    try:
+        driver.get(f"{host}/recover-password/")
+        time.sleep(2)
+
+        email_field = driver.find_element(By.NAME, "email")
+        email_field.send_keys("user1@example.com")
+
+        email_field.send_keys(Keys.RETURN)
+        time.sleep(4)
+
+        driver.find_element(By.XPATH, "//*[contains(text(), 'sent')]")
+
+    finally:
+        close_driver(driver)

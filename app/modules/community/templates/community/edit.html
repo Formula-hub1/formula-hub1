@@ -1,6 +1,6 @@
 {% extends "base_template.html" %}
 
-{% block title %}Editar {{ community.name }}{% endblock %}
+{% block title %}Edit {{ community.name }}{% endblock %}
 
 {% block content %}
 
@@ -8,15 +8,15 @@
     <div class="col-12">
         <a href="{{ url_for('community.detail', slug=community.slug) }}" class="btn btn-outline-secondary btn-sm">
             <i data-feather="arrow-left" class="center-button-icon"></i>
-            Volver
+            Back
         </a>
     </div>
 </div>
 
 <div class="row">
     <div class="col-xl-8 col-lg-10 col-md-12">
-        
-        <h1 class="h2 mb-4"><b>Editar</b> {{ community.name }}</h1>
+
+        <h1 class="h2 mb-4"><b>Edit</b> {{ community.name }}</h1>
 
         <div class="card">
             <div class="card-body">
@@ -34,7 +34,7 @@
                     <div class="mb-3">
                         <label class="form-label">Slug</label>
                         <input type="text" class="form-control" value="{{ community.slug }}" disabled>
-                        <small class="text-muted">El slug no se puede modificar.</small>
+                        <small class="text-muted">The slug cannot be modified.</small>
                     </div>
 
                     <div class="mb-3">
@@ -76,7 +76,7 @@
 
                     <button type="submit" class="btn btn-primary">
                         <i data-feather="save" class="center-button-icon"></i>
-                        Guardar cambios
+                        Save changes
                     </button>
                 </form>
             </div>
