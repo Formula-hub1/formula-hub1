@@ -18,7 +18,7 @@ from app.modules.hubfile.models import Hubfile
 from app.modules.zenodo.services import ZenodoService
 from core.services.BaseService import BaseService
 
-VALID_EXTENSIONS = (".uvl", ".csv")
+VALID_EXTENSIONS = (".uvl", ".csv", ".png", ".jpg", ".jpeg")
 
 logger = logging.getLogger(__name__)
 zenodo_service = ZenodoService()
