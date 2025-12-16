@@ -197,6 +197,25 @@
 
             </div>
         </div>
+
+        {% if dataset.images %}
+        <div class="card">
+            <div class="card-body">
+                <h3>Images</h3>
+                <div class="row">
+                    {% for image in dataset.images %}
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('static', filename='uploads/datasets/' ~ dataset.id ~ '/' ~ image.filename) }}" target="_blank">
+                            <img src="{{ url_for('static', filename='uploads/datasets/' ~ dataset.id ~ '/' ~ image.filename) }}" 
+                                 class="img-fluid rounded" alt="Dataset image">
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="card">
 
             <div class="card-body">

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileField, FileRequired
-from wtforms import FieldList, FormField, SelectField, StringField, SubmitField, TextAreaField
+from wtforms import FieldList, FormField, MultipleFileField, SelectField, StringField, SubmitField, TextAreaField
 from wtforms.validators import URL, DataRequired, Optional
 
 from app.modules.dataset.models_base import PublicationType
@@ -73,6 +73,7 @@ class BaseDatasetForm(FlaskForm):
     dataset_doi = StringField("Dataset DOI", validators=[Optional(), URL()])
     tags = StringField("Tags (separated by commas)")
     authors = FieldList(FormField(AuthorForm))
+    images = MultipleFileField("Dataset Images")
 
     def convert_publication_type(self, value):
         """Convierte el valor del formulario a la cadena de nombre de enumeración."""
