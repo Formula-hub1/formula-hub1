@@ -15,7 +15,7 @@ on:
 
 jobs:
   pytest:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-25.04
 
     # Global environment variables shared across services and steps
     env:
@@ -31,7 +31,7 @@ jobs:
     services:
       # MariaDB service container for integration tests
       mariadb:
-        image: mariadb:12.2.1
+        image: mariadb:12.1.2
         env:
           MARIADB_ROOT_PASSWORD: ${{ env.MARIADB_ROOT_PASSWORD }}
           MARIADB_DATABASE: ${{ env.MARIADB_DATABASE }}
@@ -55,7 +55,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.10'
+          python-version: '3.13'
 
       # Step 3: Remove local editable mode for rosemary dependency (not CI-friendly)
       - name: Delete rosemary editable mode
